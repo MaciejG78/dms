@@ -1,13 +1,19 @@
 package pl.com.bottega.dms.model;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import pl.com.bottega.dms.model.commands.ChangeDocumentCommand;
 import pl.com.bottega.dms.model.commands.CreateDocumentCommand;
+import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
+import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
+import pl.com.bottega.dms.model.printing.PrintCostCalculator;
+
+import java.math.BigDecimal;
 
 import static org.junit.Assert.assertEquals;
+import static pl.com.bottega.dms.model.DocumentStatus.DRAFT;
+import static pl.com.bottega.dms.model.DocumentStatus.VERIFIED;
 
 /**
  * Created by macie on 12.02.2017.
@@ -53,6 +59,45 @@ public class DocumentTest {
         assertEquals("changed content", document.getContent());
     }
 
+    @Test
+    public void shouldChangeStatusAtVerifiedAfterVerify() {
+        //given
+        //when
+        document.setStatus(VERIFIED);
+        //then
+        assertEquals(VERIFIED, document.getStatus());
+    }
+
+    @Test(expected = DocumentStatusException.class)
+    public void shouldNotAllowVeryfingAlreadyVerifiedDocument() {
+        // given - document is already verified
+        document.verify(1L);
+        // when - second verification attempt
+        document.verify(2L);
+        // then - nie ma tutaj żadych assercji bo testujemy czy kodzik produkcyjny wyrzuci wyjątek klasy DocumentStatusException
+    }
+
+    @Test
+    public void shouldBeDraftAfterEdit() {
+        ChangeDocumentCommand changeDocumentCommand = new ChangeDocumentCommand();
+        changeDocumentCommand.setTitle("changed title");
+
+        document.setStatus(VERIFIED);
+        document.change(changeDocumentCommand);
+
+        assertEquals(DocumentStatus.DRAFT, document.getStatus());
+    }
+
+    @Test
+    public void shouldBePublishedAfterPublish() {
+        PublishDocumentCommand publishDocumentCommand = new PublishDocumentCommand();
+        StubPrintCostCalculator calculatePrintCost = new StubPrintCostCalculator();
+
+        document.publish(publishDocumentCommand, calculatePrintCost);
+
+        assertEquals(DocumentStatus.PUBLISHED, document.getStatus());
+    }
+
     class StubNumberGenerator implements NumberGenerator {
 
         public DocumentNumber generate() {
@@ -60,4 +105,10 @@ public class DocumentTest {
         }
     }
 
+    class StubPrintCostCalculator implements PrintCostCalculator {
+        public BigDecimal calculateCost(Document document) {
+            BigDecimal bdec = new BigDecimal("0.12");
+            return bdec;
+        }
+    }
 }
