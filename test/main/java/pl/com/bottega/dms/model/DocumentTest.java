@@ -10,8 +10,13 @@ import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static pl.com.bottega.dms.model.DocumentStatus.DRAFT;
 import static pl.com.bottega.dms.model.DocumentStatus.VERIFIED;
 
@@ -28,6 +33,7 @@ public class DocumentTest {
     public void setUp() {
         cmd = new CreateDocumentCommand();
         cmd.setTitle("test title");
+        cmd.setCreateDate(LocalDateTime.now());
         numberGenerator = new StubNumberGenerator();
         document = new Document(cmd, numberGenerator);
     }
@@ -98,8 +104,24 @@ public class DocumentTest {
         assertEquals(DocumentStatus.PUBLISHED, document.getStatus());
     }
 
-    class StubNumberGenerator implements NumberGenerator {
+    @Test(expected = DocumentStatusException.class)
+    public void shouldNotAllowEditInStatusDifferentThanDraftOrVerified() {
+        ChangeDocumentCommand changeDocumentCommand = new ChangeDocumentCommand();
+        changeDocumentCommand.setTitle("changed title");
+        PublishDocumentCommand publishDocumentCommand = new PublishDocumentCommand();
+        StubPrintCostCalculator calculatePrintCost = new StubPrintCostCalculator();
 
+        document.publish(publishDocumentCommand, calculatePrintCost);
+        assertEquals(DocumentStatus.PUBLISHED, document.getStatus());
+        document.change(changeDocumentCommand);
+    }
+
+    @Test
+    public void shouldRememberCreateDate() {
+        assertSameTime(LocalDateTime.now(), document.getCreateDate());
+    }
+
+    class StubNumberGenerator implements NumberGenerator {
         public DocumentNumber generate() {
             return new DocumentNumber("1");
         }
@@ -111,4 +133,11 @@ public class DocumentTest {
             return bdec;
         }
     }
+
+    private static final Long DATE_EPS = 500L;
+
+    private void assertSameTime(LocalDateTime expected, LocalDateTime actual) {
+        assertTrue(ChronoUnit.MILLIS.between(expected, actual) < DATE_EPS);
+    }
+
 }

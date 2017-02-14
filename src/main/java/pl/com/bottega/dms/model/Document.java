@@ -5,6 +5,8 @@ import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
+import java.time.LocalDateTime;
+
 import static pl.com.bottega.dms.model.DocumentStatus.DRAFT;
 import static pl.com.bottega.dms.model.DocumentStatus.PUBLISHED;
 import static pl.com.bottega.dms.model.DocumentStatus.VERIFIED;
@@ -18,17 +20,23 @@ public class Document {
     private DocumentStatus status;
     private String title;
     private String content;
+    private LocalDateTime createDate;
 
     public Document(CreateDocumentCommand cmd, NumberGenerator numberGenerator) {
         this.number = numberGenerator.generate();
         this.status = DRAFT;
         this.title = cmd.getTitle();
+        this.createDate = cmd.getCreateDate();
     }
 
     public void change(ChangeDocumentCommand cmd) {
-        this.title = cmd.getTitle();
-        this.content = cmd.getContent();
-        setStatus(DRAFT);
+        if (getStatus().equals(DRAFT) || getStatus().equals(VERIFIED)) {
+            this.title = cmd.getTitle();
+            this.content = cmd.getContent();
+            this.status = DRAFT;
+        }
+        else
+            throw new DocumentStatusException("Invalid document status");
     }
 
     public void verify(Long id) throws DocumentStatusException {
@@ -73,5 +81,13 @@ public class Document {
 
     public String getContent() {
         return content;
+    }
+
+    public LocalDateTime getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(LocalDateTime createDate) {
+        this.createDate = createDate;
     }
 }
