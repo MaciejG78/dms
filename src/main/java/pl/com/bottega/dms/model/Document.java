@@ -21,28 +21,39 @@ public class Document {
     private String title;
     private String content;
     private LocalDateTime createDate;
+    private LocalDateTime verificationDate;
+    private LocalDateTime publicationDate;
+    private LocalDateTime changingDate;
+    private EmployeeId createdEmployeeId;
+    private EmployeeId verifierEmployeeId;
+    private EmployeeId changerEmployeeId;
+    private EmployeeId publisherEmployeeId;
 
     public Document(CreateDocumentCommand cmd, NumberGenerator numberGenerator) {
         this.number = numberGenerator.generate();
         this.status = DRAFT;
         this.title = cmd.getTitle();
-        this.createDate = cmd.getCreateDate();
+        this.createDate = LocalDateTime.now();
+        this.createdEmployeeId = cmd.getId();
     }
 
     public void change(ChangeDocumentCommand cmd) {
         if (getStatus().equals(DRAFT) || getStatus().equals(VERIFIED)) {
             this.title = cmd.getTitle();
             this.content = cmd.getContent();
+            this.changingDate = LocalDateTime.now();
+            this.changerEmployeeId = cmd.getId();
             this.status = DRAFT;
-        }
-        else
+        } else
             throw new DocumentStatusException("Invalid document status");
     }
 
     public void verify(EmployeeId id) throws DocumentStatusException {
-        if (getStatus().equals(DRAFT))
+        if (getStatus().equals(DRAFT)) {
             setStatus(VERIFIED);
-        else
+            this.verifierEmployeeId = id;
+            this.verificationDate = LocalDateTime.now();
+        } else
             throw new DocumentStatusException("Invalid document status");
     }
 
@@ -51,8 +62,10 @@ public class Document {
     }
 
     public void publish(PublishDocumentCommand cmd, PrintCostCalculator printCostCalculator) {
-        
+        this.publicationDate = LocalDateTime.now();
+        this.publisherEmployeeId = cmd.getId();
         setStatus(PUBLISHED);
+
     }
 
     public void confirm(ConfirmDocumentCommand cmd) {
@@ -83,11 +96,43 @@ public class Document {
         return content;
     }
 
+    public void setCreateDate(LocalDateTime createDate) {
+        this.createDate = createDate;
+    }
+
     public LocalDateTime getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(LocalDateTime createDate) {
-        this.createDate = createDate;
+    public void setVerificationDate(LocalDateTime verificationDate) {
+        this.verificationDate = verificationDate;
+    }
+
+    public LocalDateTime getVerificationDate() {
+        return verificationDate;
+    }
+
+    public LocalDateTime getPublicationDate() {
+        return publicationDate;
+    }
+
+    public LocalDateTime getChangingDate() {
+        return changingDate;
+    }
+
+    public EmployeeId getCreatorEmploeeId() {
+        return createdEmployeeId;
+    }
+
+    public EmployeeId getVerifierEmployeeId() {
+        return verifierEmployeeId;
+    }
+
+    public EmployeeId getChangerEmployeeId() {
+        return changerEmployeeId;
+    }
+
+    public EmployeeId getPublisherEmployeeId() {
+        return publisherEmployeeId;
     }
 }

@@ -10,14 +10,11 @@ import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static pl.com.bottega.dms.model.DocumentStatus.DRAFT;
 import static pl.com.bottega.dms.model.DocumentStatus.VERIFIED;
 
 /**
@@ -28,15 +25,21 @@ public class DocumentTest {
     private CreateDocumentCommand cmd;
     private NumberGenerator numberGenerator;
     private Document document;
+    private StubPrintCostCalculator calculatePrintCost;
+    private ChangeDocumentCommand changeDocumentCommand;
+    private PublishDocumentCommand publishDocumentCommand;
+    private EmployeeId id;
 
     @Before
     public void setUp() {
         cmd = new CreateDocumentCommand();
         cmd.setTitle("test title");
-        cmd.setCreateDate(LocalDateTime.now());
+        cmd.id = new EmployeeId(1L);
         numberGenerator = new StubNumberGenerator();
         document = new Document(cmd, numberGenerator);
-
+        calculatePrintCost = new StubPrintCostCalculator();
+        changeDocumentCommand = new ChangeDocumentCommand();
+        publishDocumentCommand = new PublishDocumentCommand();
     }
 
     @Test
@@ -56,7 +59,6 @@ public class DocumentTest {
 
     @Test
     public void shouldChangeTitleAndContent() {
-        ChangeDocumentCommand changeDocumentCommand = new ChangeDocumentCommand();
         changeDocumentCommand.setTitle("changed title");
         changeDocumentCommand.setContent("changed content");
 
@@ -79,8 +81,8 @@ public class DocumentTest {
     @Test(expected = DocumentStatusException.class)
     public void shouldNotAllowVeryfingAlreadyVerifiedDocument() {
         // given - document is already verified
-        EmployeeId someEmployeeId = new EmployeeId(1L);
-        EmployeeId otherEmployeeId = new EmployeeId(2L);
+        EmployeeId someEmployeeId = new EmployeeId(2L);
+        EmployeeId otherEmployeeId = new EmployeeId(3L);
         document.verify(someEmployeeId);
         // when - second verification attempt
         document.verify(otherEmployeeId);
@@ -89,9 +91,8 @@ public class DocumentTest {
 
     @Test
     public void shouldBeDraftAfterEdit() {
-        ChangeDocumentCommand changeDocumentCommand = new ChangeDocumentCommand();
         changeDocumentCommand.setTitle("changed title");
-        EmployeeId someEmployeeId = new EmployeeId(1L);
+        EmployeeId someEmployeeId = new EmployeeId(2L);
 
         document.verify(someEmployeeId);
         document.change(changeDocumentCommand);
@@ -101,7 +102,6 @@ public class DocumentTest {
 
     @Test
     public void shouldBePublishedAfterPublish() {
-        PublishDocumentCommand publishDocumentCommand = new PublishDocumentCommand();
         StubPrintCostCalculator calculatePrintCost = new StubPrintCostCalculator();
 
         document.publish(publishDocumentCommand, calculatePrintCost);
@@ -111,9 +111,7 @@ public class DocumentTest {
 
     @Test(expected = DocumentStatusException.class)
     public void shouldNotAllowEditInStatusDifferentThanDraftOrVerified() {
-        ChangeDocumentCommand changeDocumentCommand = new ChangeDocumentCommand();
         changeDocumentCommand.setTitle("changed title");
-        PublishDocumentCommand publishDocumentCommand = new PublishDocumentCommand();
         StubPrintCostCalculator calculatePrintCost = new StubPrintCostCalculator();
 
         document.publish(publishDocumentCommand, calculatePrintCost);
@@ -124,6 +122,62 @@ public class DocumentTest {
     @Test
     public void shouldRememberCreateDate() {
         assertSameTime(LocalDateTime.now(), document.getCreateDate());
+    }
+
+    @Test
+    public void shouldRememberLastVerificationDate() {
+        EmployeeId someEmployeeId = new EmployeeId(2L);
+
+        document.verify(someEmployeeId);
+
+        assertSameTime(LocalDateTime.now(), document.getVerificationDate());
+    }
+
+    @Test
+    public void shouldRememberPublicationDate() {
+
+
+        document.publish(publishDocumentCommand, calculatePrintCost);
+
+        assertSameTime(LocalDateTime.now(), document.getPublicationDate());
+    }
+
+    @Test
+    public void shouldRememberLastChangeDate() {
+        changeDocumentCommand.setTitle("changed title");
+        document.change(changeDocumentCommand);
+
+        assertSameTime(LocalDateTime.now(), document.getChangingDate());
+    }
+
+    @Test
+    public void shouldRememberCreatorEmployeeId() {
+        EmployeeId creatorEmployeeId = new EmployeeId(1L);
+        assertEquals(creatorEmployeeId, document.getCreatorEmploeeId());
+    }
+
+    @Test
+    public void shouldRememberVerifierEmployeeId() {
+        EmployeeId verifierEmployeeId = new EmployeeId(2L);
+        document.verify(verifierEmployeeId);
+        assertEquals(verifierEmployeeId, document.getVerifierEmployeeId());
+    }
+
+    @Test
+    public void shouldRememberChangerEmployeeId() {
+        EmployeeId changerEmployeeId = new EmployeeId(3L);
+        changeDocumentCommand.setId(changerEmployeeId);
+        changeDocumentCommand.setContent("changed content");
+        document.change(changeDocumentCommand);
+        assertEquals(changerEmployeeId, document.getChangerEmployeeId());
+    }
+
+    @Test
+    public void shouldRememberPublisherEmployeeId() {
+        EmployeeId publisherEmployeeId = new EmployeeId(4L);
+        publishDocumentCommand.setId(publisherEmployeeId);
+        document.publish(publishDocumentCommand, calculatePrintCost);
+        assertEquals(publisherEmployeeId, document.getPublisherEmployeeId());
     }
 
     class StubNumberGenerator implements NumberGenerator {
