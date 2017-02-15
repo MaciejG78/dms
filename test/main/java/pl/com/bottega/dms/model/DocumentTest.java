@@ -36,6 +36,7 @@ public class DocumentTest {
         cmd.setCreateDate(LocalDateTime.now());
         numberGenerator = new StubNumberGenerator();
         document = new Document(cmd, numberGenerator);
+
     }
 
     @Test
@@ -68,8 +69,9 @@ public class DocumentTest {
     @Test
     public void shouldChangeStatusAtVerifiedAfterVerify() {
         //given
+        EmployeeId someEmployeeId = new EmployeeId(1L);
         //when
-        document.setStatus(VERIFIED);
+        document.verify(someEmployeeId);
         //then
         assertEquals(VERIFIED, document.getStatus());
     }
@@ -77,9 +79,11 @@ public class DocumentTest {
     @Test(expected = DocumentStatusException.class)
     public void shouldNotAllowVeryfingAlreadyVerifiedDocument() {
         // given - document is already verified
-        document.verify(1L);
+        EmployeeId someEmployeeId = new EmployeeId(1L);
+        EmployeeId otherEmployeeId = new EmployeeId(2L);
+        document.verify(someEmployeeId);
         // when - second verification attempt
-        document.verify(2L);
+        document.verify(otherEmployeeId);
         // then - nie ma tutaj żadych assercji bo testujemy czy kodzik produkcyjny wyrzuci wyjątek klasy DocumentStatusException
     }
 
@@ -87,8 +91,9 @@ public class DocumentTest {
     public void shouldBeDraftAfterEdit() {
         ChangeDocumentCommand changeDocumentCommand = new ChangeDocumentCommand();
         changeDocumentCommand.setTitle("changed title");
+        EmployeeId someEmployeeId = new EmployeeId(1L);
 
-        document.setStatus(VERIFIED);
+        document.verify(someEmployeeId);
         document.change(changeDocumentCommand);
 
         assertEquals(DocumentStatus.DRAFT, document.getStatus());

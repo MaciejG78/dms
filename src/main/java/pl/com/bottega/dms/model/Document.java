@@ -39,7 +39,7 @@ public class Document {
             throw new DocumentStatusException("Invalid document status");
     }
 
-    public void verify(Long id) throws DocumentStatusException {
+    public void verify(EmployeeId id) throws DocumentStatusException {
         if (getStatus().equals(DRAFT))
             setStatus(VERIFIED);
         else
