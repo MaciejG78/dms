@@ -71,8 +71,9 @@ public class DocumentTest {
     @Test
     public void shouldChangeStatusAtVerifiedAfterVerify() {
         //given
-        EmployeeId someEmployeeId = new EmployeeId(1L);
+
         //when
+        EmployeeId someEmployeeId = new EmployeeId(1L);
         document.verify(someEmployeeId);
         //then
         assertEquals(VERIFIED, document.getStatus());
@@ -82,9 +83,9 @@ public class DocumentTest {
     public void shouldNotAllowVeryfingAlreadyVerifiedDocument() {
         // given - document is already verified
         EmployeeId someEmployeeId = new EmployeeId(2L);
-        EmployeeId otherEmployeeId = new EmployeeId(3L);
         document.verify(someEmployeeId);
         // when - second verification attempt
+        EmployeeId otherEmployeeId = new EmployeeId(3L);
         document.verify(otherEmployeeId);
         // then - nie ma tutaj żadych assercji bo testujemy czy kodzik produkcyjny wyrzuci wyjątek klasy DocumentStatusException
     }
@@ -127,8 +128,8 @@ public class DocumentTest {
 
     @Test
     public void shouldRememberLastVerificationDate() {
-        EmployeeId someEmployeeId = new EmployeeId(2L);
 
+        EmployeeId someEmployeeId = new EmployeeId(2L);
         document.verify(someEmployeeId);
 
         assertSameTime(LocalDateTime.now(), document.getVerificationDate());
@@ -146,8 +147,8 @@ public class DocumentTest {
 
     @Test
     public void shouldRememberLastChangeDate() {
-        changeDocumentCommand.setTitle("changed title");
 
+        changeDocumentCommand.setTitle("changed title");
         document.change(changeDocumentCommand);
 
         assertSameTime(LocalDateTime.now(), document.getChangingDate());
