@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import static pl.com.bottega.dms.model.DocumentStatus.*;
 
 /**
- * Created by macie on 12.02.2017.
+ * Created by maciek on 12.02.2017.
  */
 public class Document {
 
@@ -78,7 +78,7 @@ public class Document {
 
     }
 
-    public void setStatus(DocumentStatus status) {
+    private void setStatus(DocumentStatus status) {
         this.status = status;
     }
 
@@ -98,16 +98,8 @@ public class Document {
         return content;
     }
 
-    public void setCreateDate(LocalDateTime createDate) {
-        this.createDate = createDate;
-    }
-
     public LocalDateTime getCreateDate() {
         return createDate;
-    }
-
-    public void setVerificationDate(LocalDateTime verificationDate) {
-        this.verificationDate = verificationDate;
     }
 
     public LocalDateTime getVerificationDate() {
