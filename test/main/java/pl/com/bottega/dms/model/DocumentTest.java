@@ -28,7 +28,7 @@ public class DocumentTest {
     private StubPrintCostCalculator calculatePrintCost;
     private ChangeDocumentCommand changeDocumentCommand;
     private PublishDocumentCommand publishDocumentCommand;
-    private EmployeeId id;
+    //private EmployeeId id;
 
     @Before
     public void setUp() {
@@ -103,7 +103,8 @@ public class DocumentTest {
     @Test
     public void shouldBePublishedAfterPublish() {
         StubPrintCostCalculator calculatePrintCost = new StubPrintCostCalculator();
-
+        EmployeeId someEmployeeId = new EmployeeId(2L);
+        document.verify(someEmployeeId);
         document.publish(publishDocumentCommand, calculatePrintCost);
 
         assertEquals(DocumentStatus.PUBLISHED, document.getStatus());
@@ -135,8 +136,8 @@ public class DocumentTest {
 
     @Test
     public void shouldRememberPublicationDate() {
-
-
+        EmployeeId someEmployeeId = new EmployeeId(2L);
+        document.verify(someEmployeeId);
         document.publish(publishDocumentCommand, calculatePrintCost);
 
         assertSameTime(LocalDateTime.now(), document.getPublicationDate());
@@ -176,8 +177,59 @@ public class DocumentTest {
     public void shouldRememberPublisherEmployeeId() {
         EmployeeId publisherEmployeeId = new EmployeeId(4L);
         publishDocumentCommand.setId(publisherEmployeeId);
+        document.verify(publisherEmployeeId);
         document.publish(publishDocumentCommand, calculatePrintCost);
         assertEquals(publisherEmployeeId, document.getPublisherEmployeeId());
+    }
+
+    @Test
+    public void shouldBeArchivedInAnyStatus() {
+        document.archive();
+        assertEquals(DocumentStatus.ARCHIVED, document.getStatus());
+    }
+
+    @Test(expected = DocumentStatusException.class)
+    public void shouldNotAllowChangeInStatusArchived() {
+        changeDocumentCommand.setTitle("changed title");
+
+        document.archive();
+        document.change(changeDocumentCommand);
+    }
+
+    @Test(expected = DocumentStatusException.class)
+    public void shouldNotAllowVerifyInStatusArchived() {
+        EmployeeId someEmployeeId = new EmployeeId(4L);
+
+        document.archive();
+        document.verify(someEmployeeId);
+    }
+
+    @Test(expected = DocumentStatusException.class)
+    public void shouldNotAllowPublishInStatusArchived() {
+        EmployeeId publisherEmployeeId = new EmployeeId(4L);
+        publishDocumentCommand.setId(publisherEmployeeId);
+
+        document.archive();
+        document.publish(publishDocumentCommand, calculatePrintCost);
+    }
+
+    @Test(expected = DocumentStatusException.class)
+    public void shouldNotAllowPublishInStatusDraft() {
+        EmployeeId publisherEmployeeId = new EmployeeId(4L);
+        publishDocumentCommand.setId(publisherEmployeeId);
+
+        document.publish(publishDocumentCommand, calculatePrintCost);
+    }
+
+
+    @Test
+    public void shouldBePublishedInStatusVerified() {
+        EmployeeId publisherEmployeeId = new EmployeeId(4L);
+        publishDocumentCommand.setId(publisherEmployeeId);
+
+        document.verify(publisherEmployeeId);
+        document.publish(publishDocumentCommand, calculatePrintCost);
+        assertEquals(DocumentStatus.PUBLISHED, document.getStatus());
     }
 
     class StubNumberGenerator implements NumberGenerator {

@@ -7,9 +7,7 @@ import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
 import java.time.LocalDateTime;
 
-import static pl.com.bottega.dms.model.DocumentStatus.DRAFT;
-import static pl.com.bottega.dms.model.DocumentStatus.PUBLISHED;
-import static pl.com.bottega.dms.model.DocumentStatus.VERIFIED;
+import static pl.com.bottega.dms.model.DocumentStatus.*;
 
 /**
  * Created by macie on 12.02.2017.
@@ -58,14 +56,18 @@ public class Document {
     }
 
     public void archive() {
-
+        if (!getStatus().equals(ARCHIVED)) {
+            setStatus(ARCHIVED);
+        }
     }
 
     public void publish(PublishDocumentCommand cmd, PrintCostCalculator printCostCalculator) {
-        this.publicationDate = LocalDateTime.now();
-        this.publisherEmployeeId = cmd.getId();
-        setStatus(PUBLISHED);
-
+        if (getStatus().equals(VERIFIED)) {
+            this.publicationDate = LocalDateTime.now();
+            this.publisherEmployeeId = cmd.getId();
+            setStatus(PUBLISHED);
+        } else
+            throw new DocumentStatusException("Invalid document status");
     }
 
     public void confirm(ConfirmDocumentCommand cmd) {
