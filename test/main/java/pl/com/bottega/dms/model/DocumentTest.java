@@ -91,10 +91,10 @@ public class DocumentTest {
 
     @Test
     public void shouldBeDraftAfterEdit() {
-        changeDocumentCommand.setTitle("changed title");
         EmployeeId someEmployeeId = new EmployeeId(2L);
-
         document.verify(someEmployeeId);
+
+        changeDocumentCommand.setTitle("changed title");
         document.change(changeDocumentCommand);
 
         assertEquals(DocumentStatus.DRAFT, document.getStatus());
@@ -102,9 +102,10 @@ public class DocumentTest {
 
     @Test
     public void shouldBePublishedAfterPublish() {
-        StubPrintCostCalculator calculatePrintCost = new StubPrintCostCalculator();
         EmployeeId someEmployeeId = new EmployeeId(2L);
         document.verify(someEmployeeId);
+
+        StubPrintCostCalculator calculatePrintCost = new StubPrintCostCalculator();
         document.publish(publishDocumentCommand, calculatePrintCost);
 
         assertEquals(DocumentStatus.PUBLISHED, document.getStatus());
@@ -112,11 +113,10 @@ public class DocumentTest {
 
     @Test(expected = DocumentStatusException.class)
     public void shouldNotAllowEditInStatusDifferentThanDraftOrVerified() {
-        changeDocumentCommand.setTitle("changed title");
         StubPrintCostCalculator calculatePrintCost = new StubPrintCostCalculator();
-
         document.publish(publishDocumentCommand, calculatePrintCost);
-        assertEquals(DocumentStatus.PUBLISHED, document.getStatus());
+
+        changeDocumentCommand.setTitle("changed title");
         document.change(changeDocumentCommand);
     }
 
@@ -138,6 +138,7 @@ public class DocumentTest {
     public void shouldRememberPublicationDate() {
         EmployeeId someEmployeeId = new EmployeeId(2L);
         document.verify(someEmployeeId);
+
         document.publish(publishDocumentCommand, calculatePrintCost);
 
         assertSameTime(LocalDateTime.now(), document.getPublicationDate());
@@ -146,6 +147,7 @@ public class DocumentTest {
     @Test
     public void shouldRememberLastChangeDate() {
         changeDocumentCommand.setTitle("changed title");
+
         document.change(changeDocumentCommand);
 
         assertSameTime(LocalDateTime.now(), document.getChangingDate());
@@ -153,68 +155,82 @@ public class DocumentTest {
 
     @Test
     public void shouldRememberCreatorEmployeeId() {
+
         EmployeeId creatorEmployeeId = new EmployeeId(1L);
         assertEquals(creatorEmployeeId, document.getCreatorEmploeeId());
     }
 
     @Test
     public void shouldRememberVerifierEmployeeId() {
+
         EmployeeId verifierEmployeeId = new EmployeeId(2L);
         document.verify(verifierEmployeeId);
+
         assertEquals(verifierEmployeeId, document.getVerifierEmployeeId());
     }
 
     @Test
     public void shouldRememberChangerEmployeeId() {
+
         EmployeeId changerEmployeeId = new EmployeeId(3L);
         changeDocumentCommand.setId(changerEmployeeId);
         changeDocumentCommand.setContent("changed content");
         document.change(changeDocumentCommand);
+
         assertEquals(changerEmployeeId, document.getChangerEmployeeId());
     }
 
     @Test
     public void shouldRememberPublisherEmployeeId() {
-        EmployeeId publisherEmployeeId = new EmployeeId(4L);
+        EmployeeId verifierEmployeeId = new EmployeeId(4L);
+        document.verify(verifierEmployeeId);
+
+        EmployeeId publisherEmployeeId = new EmployeeId(5L);
         publishDocumentCommand.setId(publisherEmployeeId);
-        document.verify(publisherEmployeeId);
         document.publish(publishDocumentCommand, calculatePrintCost);
+
         assertEquals(publisherEmployeeId, document.getPublisherEmployeeId());
     }
 
     @Test
     public void shouldBeArchivedInAnyStatus() {
+
         document.archive();
+
         assertEquals(DocumentStatus.ARCHIVED, document.getStatus());
     }
 
     @Test(expected = DocumentStatusException.class)
     public void shouldNotAllowChangeInStatusArchived() {
-        changeDocumentCommand.setTitle("changed title");
 
         document.archive();
+
+        changeDocumentCommand.setTitle("changed title");
         document.change(changeDocumentCommand);
     }
 
     @Test(expected = DocumentStatusException.class)
     public void shouldNotAllowVerifyInStatusArchived() {
-        EmployeeId someEmployeeId = new EmployeeId(4L);
 
         document.archive();
+
+        EmployeeId someEmployeeId = new EmployeeId(4L);
         document.verify(someEmployeeId);
     }
 
     @Test(expected = DocumentStatusException.class)
     public void shouldNotAllowPublishInStatusArchived() {
-        EmployeeId publisherEmployeeId = new EmployeeId(4L);
-        publishDocumentCommand.setId(publisherEmployeeId);
 
         document.archive();
+
+        EmployeeId publisherEmployeeId = new EmployeeId(4L);
+        publishDocumentCommand.setId(publisherEmployeeId);
         document.publish(publishDocumentCommand, calculatePrintCost);
     }
 
     @Test(expected = DocumentStatusException.class)
     public void shouldNotAllowPublishInStatusDraft() {
+
         EmployeeId publisherEmployeeId = new EmployeeId(4L);
         publishDocumentCommand.setId(publisherEmployeeId);
 
@@ -224,11 +240,13 @@ public class DocumentTest {
 
     @Test
     public void shouldBePublishedInStatusVerified() {
-        EmployeeId publisherEmployeeId = new EmployeeId(4L);
-        publishDocumentCommand.setId(publisherEmployeeId);
+        EmployeeId verifierEmployeeId = new EmployeeId(4L);
+        document.verify(verifierEmployeeId);
 
-        document.verify(publisherEmployeeId);
+        EmployeeId publisherEmployeeId = new EmployeeId(5L);
+        publishDocumentCommand.setId(publisherEmployeeId);
         document.publish(publishDocumentCommand, calculatePrintCost);
+
         assertEquals(DocumentStatus.PUBLISHED, document.getStatus());
     }
 
