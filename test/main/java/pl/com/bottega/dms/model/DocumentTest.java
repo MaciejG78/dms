@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import static pl.com.bottega.dms.model.DocumentStatus.VERIFIED;
 
 /**
- * Created by macie on 12.02.2017.
+ * Created by maciek on 12.02.2017.
  */
 public class DocumentTest {
 
