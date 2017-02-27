@@ -11,6 +11,6 @@ public class RGBPrintCostCalculator implements PrintCostCalculator{
 
 
     public BigDecimal calculateCost(Document document) {
-        return null;
+        return new BigDecimal(50);
     }
 }

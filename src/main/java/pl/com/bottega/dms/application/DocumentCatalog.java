@@ -5,7 +5,7 @@ import pl.com.bottega.dms.model.DocumentNumber;
 /**
  * Created by macie on 12.02.2017.
  */
-public interface DocumentsCatalog {
+public interface DocumentCatalog {
 
     DocumentSearchResults find(DocumentQuery documentQuery);
 

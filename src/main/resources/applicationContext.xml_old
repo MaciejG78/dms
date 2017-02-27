@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--Sposób 1. -->
+    <!--<bean class="pl.com.bottega.dms.application.impl.StandardDocumentFlowProcess"></bean>-->
+
+    <!--Sposób 2. musi być dodane @Service w pliku klasy-->
+    <context:annotation-config></context:annotation-config>
+    <context:component-scan base-package="pl.com.bottega.dms" />
+
+    <!--Sposób 3. poprzez adnotacje w klasie Configuration.java-->
+
+
+</beans>
