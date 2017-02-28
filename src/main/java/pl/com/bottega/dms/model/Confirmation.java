@@ -58,4 +58,13 @@ public class Confirmation {
         return confirmationDate;
     }
 
+    public EmployeeId getOwner(){
+        return owner;
+    }
+
+    public EmployeeId getProxy(){
+        return proxy;
+    }
+
+
 }

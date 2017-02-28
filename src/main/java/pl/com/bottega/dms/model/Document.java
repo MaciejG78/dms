@@ -1,5 +1,7 @@
 package pl.com.bottega.dms.model;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import pl.com.bottega.dms.model.commands.*;
 import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
@@ -44,6 +46,7 @@ public class Document {
     private BigDecimal printCost;
 
     @OneToMany(cascade = CascadeType.ALL)
+    @Fetch(FetchMode.JOIN)
     @JoinColumn(name = "documentNumber")
     private Set<Confirmation> confirmations;
 
@@ -97,6 +100,11 @@ public class Document {
     }
 
     public void confirm(ConfirmDocumentCommand cmd) {
+        EmployeeId employeeId = cmd.getEmployeeId();
+
+        if(isConfirmedBy(employeeId))
+            throw new DocumentStatusException(String.format("Dokument is confirmed by %s", employeeId));
+
         for(Confirmation confirmation : confirmations){
             if(confirmation.isOwnedBy(cmd.getEmployeeId())) {
                 confirmation.confirm();
@@ -109,6 +117,10 @@ public class Document {
     public void confirmFor(ConfirmForDocumentCommand cmd) {
         EmployeeId owner = cmd.getEmployeeId();
         EmployeeId proxy = cmd.getConfirmingEmployeeId();
+
+        if(isConfirmedBy(owner))
+            throw new DocumentStatusException(String.format("Dokument is confirmed by %s", owner));
+
         if (!owner.equals(proxy)) {
             for (Confirmation confirmation : confirmations) {
                 if (confirmation.isOwnedBy(owner)) {
@@ -202,5 +214,17 @@ public class Document {
                 return confirmation.getConfirmationDate();
         }
         throw new DocumentStatusException(String.format("Dokument not confirmed by %s", employeeId));
+    }
+
+    public Confirmation getConfirmation(EmployeeId employeeId) {
+        for (Confirmation confirmation : confirmations) {
+            if (confirmation.isOwnedBy(employeeId))
+                return confirmation;
+        }
+        return null;
+    }
+
+    public Set<Confirmation> getConfirmations() {
+        return confirmations;
     }
 }

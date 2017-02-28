@@ -1,9 +1,10 @@
 package pl.com.bottega.dms.application;
 
-import pl.com.bottega.dms.model.Confirmation;
 import pl.com.bottega.dms.model.DocumentStatus;
+import pl.com.bottega.dms.model.EmployeeId;
+import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
 
-import java.util.LinkedList;
+import java.util.Set;
 
 /**
  * Created by macie on 12.02.2017.
@@ -12,7 +13,7 @@ public class DocumentDto {
     private String number;
     private String title;
     private DocumentStatus status;
-    private LinkedList<Confirmation> confirmations;
+    private Set<ConfirmationDto> confirmations;
 
     public String getTitle() {
         return title;
@@ -38,11 +39,20 @@ public class DocumentDto {
         this.status = status;
     }
 
-    public LinkedList<Confirmation> getConfirmations() {
+    public Set<ConfirmationDto> getConfirmations() {
         return confirmations;
     }
 
-    public void setConfirmations(LinkedList<Confirmation> confirmations) {
+    public void setConfirmations(Set<ConfirmationDto> confirmations) {
         this.confirmations = confirmations;
     }
+
+    public ConfirmationDto getConfirmation(EmployeeId employeeId) {
+        for (ConfirmationDto confirmationDto : confirmations) {
+            if (confirmationDto.getOwnerId().equals(employeeId))
+                return confirmationDto;
+        }
+        throw new DocumentStatusException(String.format("This document not contain confirmation for %d", employeeId));
+    }
+
 }

@@ -30,6 +30,8 @@ public class StandardReadingConfirmator implements ReadingConfirmator {
     @Override
     @Transactional
     public void confirmFor(ConfirmForDocumentCommand cmd) {
-
+        DocumentNumber documentNumber = new DocumentNumber(cmd.getNumber());
+        Document document = documentRepository.get(documentNumber);
+        document.confirmFor(cmd);
     }
 }
