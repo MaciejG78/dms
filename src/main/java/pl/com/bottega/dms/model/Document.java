@@ -46,7 +46,6 @@ public class Document {
     private BigDecimal printCost;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @Fetch(FetchMode.JOIN)
     @JoinColumn(name = "documentNumber")
     private Set<Confirmation> confirmations;
 

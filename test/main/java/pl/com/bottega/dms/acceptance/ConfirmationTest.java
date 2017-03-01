@@ -49,7 +49,7 @@ public class ConfirmationTest {
 
         //then
         DocumentDto dto = documentCatalog.get(documentNumber);
-        assertThat(dto.getConfirmations().contains(employeeId));
+        assertThat(dto.getConfirmation(employeeId).getOwnerId()).isEqualTo(employeeId);
     }
 
     @Test
@@ -68,8 +68,8 @@ public class ConfirmationTest {
 
         //then
         DocumentDto dto = documentCatalog.get(documentNumber);
-        assertThat(dto.getConfirmations().contains(employeeId1));
-        assertThat(dto.getConfirmations().contains(employeeId2));
+        assertThat(dto.getConfirmation(employeeId1).getOwnerId()).isEqualTo(employeeId1);
+        assertThat(dto.getConfirmation(employeeId1).getProxyId()).isEqualTo(employeeId2);
     }
 
     public DocumentAssembler given() {

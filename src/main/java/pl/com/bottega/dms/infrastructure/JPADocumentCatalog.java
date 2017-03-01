@@ -1,16 +1,18 @@
 package pl.com.bottega.dms.infrastructure;
 
+import org.springframework.transaction.annotation.Transactional;
 import pl.com.bottega.dms.application.*;
 import pl.com.bottega.dms.model.Confirmation;
 import pl.com.bottega.dms.model.Document;
 import pl.com.bottega.dms.model.DocumentNumber;
 import pl.com.bottega.dms.model.EmployeeId;
+import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -27,14 +29,23 @@ public class JPADocumentCatalog implements DocumentCatalog{
     }
 
     @Override
+    @Transactional
     public DocumentDto get(DocumentNumber documentNumber) {
-        Document document = entityManager.find(Document.class, documentNumber);
+        //Document document = entityManager.find(Document.class, documentNumber);
+        Query query = entityManager.createQuery("FROM Document d LEFT JOIN FETCH d.number c WHERE d.number = :documentNumber");
+        query.setParameter("documentNumber", documentNumber);
         DocumentDto documentDto = new DocumentDto();
-        documentDto.setNumber(documentNumber.getNumber());
-        documentDto.setTitle(document.getTitle());
-        documentDto.setStatus(document.getStatus());
-        documentDto.setConfirmations(setConfirmationsToDto(document.getConfirmations()));
-        return documentDto;
+        Collection<Document> documents = query.getResultList();
+        if (!documents.isEmpty()){
+        for (Document document : documents) {
+                documentDto.setNumber(documentNumber.getNumber());
+                documentDto.setTitle(document.getTitle());
+                documentDto.setStatus(document.getStatus());
+                documentDto.setConfirmations(setConfirmationsToDto(document.getConfirmations()));
+                return documentDto;
+            }
+        }
+        throw new DocumentStatusException(String.format("No document with %d number", documentNumber));
     }
 
     public Set<ConfirmationDto> setConfirmationsToDto(Set<Confirmation> confirmations) {
@@ -49,4 +60,5 @@ public class JPADocumentCatalog implements DocumentCatalog{
         }
         return cDto;
     }
+
 }
