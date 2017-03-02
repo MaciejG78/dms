@@ -32,7 +32,7 @@ public class JPADocumentCatalog implements DocumentCatalog{
     @Transactional
     public DocumentDto get(DocumentNumber documentNumber) {
         //Document document = entityManager.find(Document.class, documentNumber);
-        Query query = entityManager.createQuery("FROM Document d LEFT JOIN FETCH d.number c WHERE d.number = :documentNumber");
+        Query query = entityManager.createQuery("FROM Document d LEFT JOIN FETCH d.confirmations c WHERE d.number = :documentNumber");
         query.setParameter("documentNumber", documentNumber);
         DocumentDto documentDto = new DocumentDto();
         Collection<Document> documents = query.getResultList();
