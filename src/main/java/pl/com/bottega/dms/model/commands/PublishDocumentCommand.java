@@ -3,26 +3,22 @@ package pl.com.bottega.dms.model.commands;
 import pl.com.bottega.dms.model.EmployeeId;
 
 import java.util.Collection;
+import java.util.List;
 
-/**
- * Created by macie on 12.02.2017.
- */
 public class PublishDocumentCommand {
-
-
-    private EmployeeId id;
+    private EmployeeId employeeId;
     private Collection<EmployeeId> recipients;
     private String number;
 
-    public void setEmployeeId(EmployeeId id) {
-        this.id = id;
-    }
-
     public EmployeeId getEmployeeId() {
-        return id;
+        return employeeId;
     }
 
-    public void setRecipients(Collection<EmployeeId> recipients){
+    public void setEmployeeId(EmployeeId employeeId) {
+        this.employeeId = employeeId;
+    }
+
+    public void setRecipients(Collection<EmployeeId> recipients) {
         this.recipients = recipients;
     }
 

@@ -1,7 +1,17 @@
 package pl.com.bottega.dms.application;
 
-/**
- * Created by macie on 12.02.2017.
- */
+import java.time.LocalDateTime;
+
 public class DocumentSearchResults {
+    private String phrase;
+    private String status;
+
+    private LocalDateTime createdAfter;
+    private LocalDateTime createdBefore;
+
+    private Long creatorId;
+
+    private Long pageNumber;
+    private Long perPage;
+
 }

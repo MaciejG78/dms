@@ -1,24 +1,17 @@
 package pl.com.bottega.dms.infrastructure;
 
-import org.springframework.transaction.annotation.Transactional;
 import pl.com.bottega.dms.application.*;
 import pl.com.bottega.dms.model.Confirmation;
 import pl.com.bottega.dms.model.Document;
 import pl.com.bottega.dms.model.DocumentNumber;
-import pl.com.bottega.dms.model.EmployeeId;
-import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
-/**
- * Created by maciek on 18.02.2017.
- */
-public class JPADocumentCatalog implements DocumentCatalog{
+public class JPADocumentCatalog implements DocumentCatalog {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -29,36 +22,31 @@ public class JPADocumentCatalog implements DocumentCatalog{
     }
 
     @Override
-    @Transactional
     public DocumentDto get(DocumentNumber documentNumber) {
-        //Document document = entityManager.find(Document.class, documentNumber);
-        Query query = entityManager.createQuery("FROM Document d LEFT JOIN FETCH d.confirmations c WHERE d.number = :documentNumber");
-        query.setParameter("documentNumber", documentNumber);
+        Query query = entityManager.createQuery("FROM Document d LEFT JOIN FETCH d.confirmations WHERE d.number = :nr");
+        query.setParameter("nr", documentNumber);
+        Document document = (Document) query.getResultList().get(0);
         DocumentDto documentDto = new DocumentDto();
-        Collection<Document> documents = query.getResultList();
-        if (!documents.isEmpty()){
-        for (Document document : documents) {
-                documentDto.setNumber(documentNumber.getNumber());
-                documentDto.setTitle(document.getTitle());
-                documentDto.setStatus(document.getStatus());
-                documentDto.setConfirmations(setConfirmationsToDto(document.getConfirmations()));
-                return documentDto;
-            }
+        documentDto.setNumber(documentNumber.getNumber());
+        documentDto.setTitle(document.getTitle());
+        documentDto.setContent(document.getContent());
+        documentDto.setStatus(document.getStatus().name());
+        List<ConfirmationDto> confirmationDtos = new LinkedList<>();
+        for(Confirmation confirmation : document.getConfirmations()) {
+            ConfirmationDto dto = createConfirmationDto(confirmation);
+            confirmationDtos.add(dto);
         }
-        throw new DocumentStatusException(String.format("No document with %d number", documentNumber));
+        documentDto.setConfirmations(confirmationDtos);
+        return documentDto;
     }
 
-    public Set<ConfirmationDto> setConfirmationsToDto(Set<Confirmation> confirmations) {
-        Set<ConfirmationDto> cDto = new HashSet<>();
-        for (Confirmation confirmation : confirmations){
-            ConfirmationDto confirmationDto = new ConfirmationDto();
-            confirmationDto.setOwnerId(confirmation.getOwner());
-            EmployeeId proxyId = confirmation.getProxy();
-            if (proxyId != null) confirmationDto.setProxyId(confirmation.getProxy());
-            confirmationDto.setConfirmationDate(confirmation.getConfirmationDate());
-            cDto.add(confirmationDto);
-        }
-        return cDto;
+    private ConfirmationDto createConfirmationDto(Confirmation confirmation) {
+        ConfirmationDto dto = new ConfirmationDto();
+        dto.setConfirmed(confirmation.isConfirmed());
+        dto.setConfirmedAt(confirmation.getConfirmationDate());
+        dto.setOwnerEmployeeId(confirmation.getOwner().getId());
+        if(confirmation.hasProxy())
+            dto.setProxyEmployeeId(confirmation.getProxy().getId());
+        return dto;
     }
-
 }

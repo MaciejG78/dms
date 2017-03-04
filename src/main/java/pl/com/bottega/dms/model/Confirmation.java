@@ -1,13 +1,8 @@
 package pl.com.bottega.dms.model;
 
-import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
-
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-/**
- * Created by maciek on 18.02.2017.
- */
 @Entity
 public class Confirmation {
 
@@ -16,55 +11,55 @@ public class Confirmation {
     private Long id;
 
     @Embedded
-    @AttributeOverride(name = "id", column = @Column(name = "ownerId"))
+    @AttributeOverride(name="id", column = @Column(name = "ownerId"))
     private EmployeeId owner;
 
     private LocalDateTime confirmationDate;
 
     @Embedded
-    @AttributeOverride(name = "id", column = @Column(name = "proxyId"))
-    private EmployeeId proxy; //Ten który potwierdza za ownera
+    @AttributeOverride(name="id", column = @Column(name = "proxyId"))
+    private EmployeeId proxy;
 
-    Confirmation(){}
+    Confirmation() {}
 
-    public Confirmation(EmployeeId employeeId){
-        this.owner = employeeId;
+    public Confirmation(EmployeeId owner) {
+        this.owner = owner;
     }
 
-    public boolean isOwnedBy(EmployeeId employeeId){
+    public boolean isOwnedBy(EmployeeId employeeId) {
         return employeeId.equals(owner);
     }
 
-    public boolean isProxedBy(EmployeeId employeeId){
-        return employeeId.equals(proxy);
-    }
-
-    public boolean isConfirmed(){
+    public boolean isConfirmed() {
         return confirmationDate != null;
     }
 
     public void confirm() {
-        if (!isConfirmed())
-            confirmationDate = LocalDateTime.now();
-        else
-            throw new DocumentStatusException(String.format("Document was previously accepted"));
+        if(isConfirmed())
+            throw new DocumentStatusException(String.format("Employee %s has already confirmed", owner));
+        confirmationDate = LocalDateTime.now();
     }
 
     public void confirmFor(EmployeeId proxy) {
+        if(proxy.equals(owner))
+            throw new DocumentStatusException("Employee is the same as proxy employee");
         confirm();
         this.proxy = proxy;
     }
-    public LocalDateTime getConfirmationDate(){
+
+    public LocalDateTime getConfirmationDate() {
         return confirmationDate;
     }
 
-    public EmployeeId getOwner(){
+    public EmployeeId getOwner() {
         return owner;
     }
 
-    public EmployeeId getProxy(){
+    public EmployeeId getProxy() {
         return proxy;
     }
 
-
+    public boolean hasProxy() {
+        return proxy != null;
+    }
 }

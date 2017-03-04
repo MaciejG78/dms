@@ -5,9 +5,6 @@ import pl.com.bottega.dms.model.commands.ChangeDocumentCommand;
 import pl.com.bottega.dms.model.commands.CreateDocumentCommand;
 import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
 
-/**
- * Created by macie on 12.02.2017.
- */
 public interface DocumentFlowProcess {
 
     DocumentNumber create(CreateDocumentCommand cmd);

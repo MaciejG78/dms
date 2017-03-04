@@ -2,11 +2,7 @@ package pl.com.bottega.dms.model.commands;
 
 import pl.com.bottega.dms.model.EmployeeId;
 
-/**
- * Created by macie on 12.02.2017.
- */
 public class ConfirmForDocumentCommand {
-
     private EmployeeId employeeId;
     private EmployeeId confirmingEmployeeId;
     private String number;

@@ -4,12 +4,10 @@ import pl.com.bottega.dms.model.Document;
 
 import java.math.BigDecimal;
 
-/**
- * Created by macie on 12.02.2017.
- */
 public class BWPrintCostCalculator implements PrintCostCalculator {
 
     public BigDecimal calculateCost(Document document) {
         return null;
     }
+
 }

@@ -1,39 +1,43 @@
 package pl.com.bottega.dms.application;
 
-import pl.com.bottega.dms.model.EmployeeId;
-
 import java.time.LocalDateTime;
 
-/**
- * Created by maciek on 27.02.2017.
- */
 public class ConfirmationDto {
 
-    private LocalDateTime confirmationDate;
-    private EmployeeId ownerId;
-    private EmployeeId proxyId;
+    private boolean confirmed;
+    private Long ownerEmployeeId;
+    private Long proxyEmployeeId;
+    private LocalDateTime confirmedAt;
 
-   public LocalDateTime getConfirmationDate() {
-        return confirmationDate;
+    public boolean isConfirmed() {
+        return confirmed;
     }
 
-    public void setConfirmationDate(LocalDateTime confirmationDate) {
-        this.confirmationDate = confirmationDate;
+    public void setConfirmed(boolean confirmed) {
+        this.confirmed = confirmed;
     }
 
-    public EmployeeId getOwnerId() {
-        return ownerId;
+    public Long getOwnerEmployeeId() {
+        return ownerEmployeeId;
     }
 
-    public void setOwnerId(EmployeeId ownerId) {
-        this.ownerId = ownerId;
+    public void setOwnerEmployeeId(Long ownerEmployeeId) {
+        this.ownerEmployeeId = ownerEmployeeId;
     }
 
-    public EmployeeId getProxyId() {
-        return proxyId;
+    public LocalDateTime getConfirmedAt() {
+        return confirmedAt;
     }
 
-    public void setProxyId(EmployeeId proxyId) {
-        this.proxyId = proxyId;
+    public void setConfirmedAt(LocalDateTime confirmedAt) {
+        this.confirmedAt = confirmedAt;
+    }
+
+    public Long getProxyEmployeeId() {
+        return proxyEmployeeId;
+    }
+
+    public void setProxyEmployeeId(Long proxyEmployeeId) {
+        this.proxyEmployeeId = proxyEmployeeId;
     }
 }

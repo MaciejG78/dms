@@ -1,32 +1,26 @@
 package pl.com.bottega.dms.model;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import pl.com.bottega.dms.model.commands.*;
-import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
-import javax.print.Doc;
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static pl.com.bottega.dms.model.DocumentStatus.VERIFIED;
-
-/**
- * Created by maciek on 12.02.2017.
- */
+import static org.mockito.Mockito.*;
+import static pl.com.bottega.dms.model.DocumentStatus.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DocumentTest {
@@ -97,7 +91,7 @@ public class DocumentTest {
         document.change(new ChangeDocumentCommand());
 
         // then
-        assertEquals(DocumentStatus.DRAFT, document.getStatus());
+        assertEquals(DRAFT, document.getStatus());
     }
 
     @Test
@@ -107,7 +101,7 @@ public class DocumentTest {
         Document document = given().publishedDocument();
 
         // then
-        assertEquals(DocumentStatus.PUBLISHED, document.getStatus());
+        assertEquals(PUBLISHED, document.getStatus());
     }
 
     @Test(expected = DocumentStatusException.class)
@@ -211,7 +205,7 @@ public class DocumentTest {
 
         document.archive(anyEmployeeId());
 
-        assertEquals(DocumentStatus.ARCHIVED, document.getStatus());
+        assertEquals(ARCHIVED, document.getStatus());
     }
 
     @Test
@@ -221,7 +215,7 @@ public class DocumentTest {
 
         document.archive(anyEmployeeId());
 
-        assertEquals(DocumentStatus.ARCHIVED, document.getStatus());
+        assertEquals(ARCHIVED, document.getStatus());
     }
 
     @Test
@@ -231,7 +225,7 @@ public class DocumentTest {
 
         document.archive(anyEmployeeId());
 
-        assertEquals(DocumentStatus.ARCHIVED, document.getStatus());
+        assertEquals(ARCHIVED, document.getStatus());
     }
 
     @Test(expected = DocumentStatusException.class)
@@ -258,13 +252,6 @@ public class DocumentTest {
         document.publish(new PublishDocumentCommand(), printCostCalculator);
     }
 
-    @Test(expected = DocumentStatusException.class)
-    public void shouldNotAllowPublishingDraftDocuments() {
-        Document document = given().newDocument();
-
-        document.publish(new PublishDocumentCommand(), printCostCalculator);
-    }
-
     @Test
     public void shouldCalculateCostOnPublish() {
         //given
@@ -281,6 +268,13 @@ public class DocumentTest {
         assertEquals(new BigDecimal(50), document.getPrintCost());
     }
 
+    @Test(expected = DocumentStatusException.class)
+    public void shouldNotAllowPublishingDraftDocuments() {
+        Document document = given().newDocument();
+
+        document.publish(new PublishDocumentCommand(), printCostCalculator);
+    }
+
     @Test
     public void shouldAllowConfirming() {
         //given
@@ -291,73 +285,68 @@ public class DocumentTest {
         cmd.setEmployeeId(new EmployeeId(1L));
         document.confirm(cmd);
 
-        //then
+        // then
         assertTrue(document.isConfirmedBy(new EmployeeId(1L)));
     }
 
     @Test
-    //2.1. Dokument powinien pamiętać daty potwierdzenia przez poszczegółnych pracowników.
-    public void shouldRememberConfirmationDate() {
+    public void shouldKnowPendingConfirmations() {
         //given
-        Document document = given().publishedDocument(new EmployeeId(1L));
+        Document document = given().publishedDocument(new EmployeeId(1L), new EmployeeId(2L));
 
-        // when
-        ConfirmDocumentCommand cmd = new ConfirmDocumentCommand();
-        cmd.setEmployeeId(new EmployeeId(1L));
-        document.confirm(cmd);
+        //when
+        Confirmation confirmation = document.getConfirmation(new EmployeeId(1L));
 
-        // then
-        assertSameTime(LocalDateTime.now(), document.getConfirmationDateBy(new EmployeeId(1L)));
+        //then
+        assertThat(confirmation.isConfirmed()).isFalse();
+        assertThat(confirmation.getConfirmationDate()).isNull();
+        assertThat(confirmation.getOwner()).isEqualTo(new EmployeeId(1L));
+        assertThat(confirmation.getProxy()).isNull();
     }
 
     @Test
-    //2.2. Dokument powinien pamiętać kto za kogo potwierdzał.
-    public void shouldRememberWhoConfirmFor() {
+    public void shouldRememberProxyEmployeeWhenConfirming() {
         //given
-        Document document = given().publishedDocument(new EmployeeId(2L));
+        Document document = given().publishedDocument(new EmployeeId(1L));
 
         //when
         ConfirmForDocumentCommand cmd = new ConfirmForDocumentCommand();
-        cmd.setEmployeeId(new EmployeeId(2L));
-        cmd.setConfirmingEmployeeId(new EmployeeId(3L));
+        cmd.setConfirmingEmployeeId(new EmployeeId(2L));
+        cmd.setEmployeeId(new EmployeeId(1L));
         document.confirmFor(cmd);
 
         //then
-        assertTrue(document.isConfirmedForBy(new EmployeeId(2L), new EmployeeId(3L)));
+        Confirmation confirmation = document.getConfirmation(new EmployeeId(1L));
+        assertThat(confirmation.isConfirmed()).isTrue();
+        assertThat(confirmation.getOwner()).isEqualTo(new EmployeeId(1L));
+        assertThat(confirmation.getProxy()).isEqualTo(new EmployeeId(2L));
     }
 
     @Test(expected = DocumentStatusException.class)
-    //2.3. Ten sam employee nie może potwierdzić dokumentu dwa razy (powinien wylecieć wyjątek)
-    public void shouldNotAllowConfirmingMoreThanOneTime() {
-        //given
-        Document document = given().publishedDocument(new EmployeeId(2L));
-        ConfirmDocumentCommand cmd = new ConfirmDocumentCommand();
-        cmd.setEmployeeId(new EmployeeId(2L));
-        document.confirm(cmd);
-
-        //when
-        document.confirm(cmd);
-
-        //then
-    }
-
-    @Test(expected = DocumentStatusException.class)
-    //2.4. Employee dla którego nie został opublikowany dokument, nie może go potwierdzić (powinien wylecieć wyjątek)
-    public void shouldNotAllowConfirmingWithoutOwner() {
+    public void shouldNotAllowConfirmingDocumentTwice() {
         //given
         Document document = given().publishedDocument(new EmployeeId(1L));
 
         //when
         ConfirmDocumentCommand cmd = new ConfirmDocumentCommand();
-        cmd.setEmployeeId(new EmployeeId(2L));
-
-        //then
+        cmd.setEmployeeId(new EmployeeId(1L));
+        document.confirm(cmd);
         document.confirm(cmd);
     }
 
     @Test(expected = DocumentStatusException.class)
-    //2.5. Employee który poetwierdza za drugiego employee nie może być jednocześnie tym za kogo potwierdza.
-    public void shouldNotAllowConfirmingForByOwner() {
+    public void shouldNotAllowConfirmingByEmployeeOutsideAudience() {
+        //given
+        Document document = given().publishedDocument(new EmployeeId(1L));
+
+        //when
+        ConfirmDocumentCommand cmd = new ConfirmDocumentCommand();
+        cmd.setEmployeeId(new EmployeeId(6000L));
+        document.confirm(cmd);
+    }
+
+    @Test(expected = DocumentStatusException.class)
+    public void shouldNotAllowSameConfirmingAndProxyEmployees() {
         //given
         Document document = given().publishedDocument(new EmployeeId(1L));
 
@@ -365,8 +354,6 @@ public class DocumentTest {
         ConfirmForDocumentCommand cmd = new ConfirmForDocumentCommand();
         cmd.setEmployeeId(new EmployeeId(1L));
         cmd.setConfirmingEmployeeId(new EmployeeId(1L));
-
-        //then
         document.confirmFor(cmd);
     }
 
@@ -375,13 +362,6 @@ public class DocumentTest {
     private void assertSameTime(LocalDateTime expected, LocalDateTime actual) {
         assertTrue(ChronoUnit.MILLIS.between(expected, actual) < DATE_EPS);
     }
-/* Wywaliliśmy na potrzeby wprowadzenia Mocka - Mockito
-    class StubNumberGenerator implements NumberGenerator {
-        public DocumentNumber generate() {
-            return anyDocumentNumber();
-        }
-    }
-*/
 
     private DocumentAssembler given() {
         return new DocumentAssembler();
@@ -403,8 +383,7 @@ public class DocumentTest {
             CreateDocumentCommand cmd = new CreateDocumentCommand();
             cmd.setTitle("test title");
             cmd.setEmployeeId(employeeId);
-            //NumberGenerator numberGenerator = new StubNumberGenerator(); //było przed dodaniem Mockito
-            NumberGenerator numberGenerator = Mockito.mock(NumberGenerator.class);
+            NumberGenerator numberGenerator = mock(NumberGenerator.class);
             when(numberGenerator.generate()).thenReturn(anyDocumentNumber());
             return new Document(cmd, numberGenerator);
         }
@@ -415,15 +394,6 @@ public class DocumentTest {
             return document;
         }
 
-        /*
-                public Document publishedDocument() {
-                    Document document = verifiedDocument();
-                    PublishDocumentCommand cmd = new PublishDocumentCommand();
-                    cmd.setEmployeeId(anyEmployeeId());
-                    document.publish(cmd, printCostCalculator);
-                    return document;
-                }
-           */
         public Document publishedDocument() {
             return publishedDocument(new EmployeeId(1L));
         }
@@ -442,10 +412,6 @@ public class DocumentTest {
             document.archive(anyEmployeeId());
             return document;
         }
-
-
-
-
     }
 
 }
