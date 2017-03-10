@@ -22,7 +22,7 @@
     </column>
     <column id="9" parent="6" name="CONFIRMATION_DATE">
       <Position>2</Position>
-      <DataType>VARBINARY(255)|-3</DataType>
+      <DataType>TIMESTAMP(26)|93</DataType>
     </column>
     <column id="10" parent="6" name="OWNER_ID">
       <Position>3</Position>
@@ -36,16 +36,16 @@
       <Position>5</Position>
       <DataType>VARCHAR(255)|12</DataType>
     </column>
-    <key id="13" parent="6" name="SYS_PK_10092">
+    <key id="13" parent="6" name="SYS_PK_10348">
       <NameSurrogate>1</NameSurrogate>
       <ColNames>ID</ColNames>
       <Primary>1</Primary>
     </key>
-    <foreign-key id="14" parent="6" name="FK_O83Y0LNB8NSCN829R8I2NTAL1">
+    <foreign-key id="14" parent="6" name="FKG3XETQBH5DQU7T1XEW2OSIUIS">
       <ColNames>DOCUMENT_NUMBER</ColNames>
       <RefSchemaName>PUBLIC</RefSchemaName>
       <RefTableName>DOCUMENT</RefTableName>
-      <RefKeyName>SYS_PK_10096</RefKeyName>
+      <RefKeyName>SYS_PK_10351</RefKeyName>
       <RefColNames>NUMBER</RefColNames>
       <OnDelete>no-action</OnDelete>
       <OnUpdate>no-action</OnUpdate>
@@ -57,7 +57,7 @@
     </column>
     <column id="16" parent="7" name="CHANGED_AT">
       <Position>2</Position>
-      <DataType>VARBINARY(255)|-3</DataType>
+      <DataType>TIMESTAMP(26)|93</DataType>
     </column>
     <column id="17" parent="7" name="CONTENT">
       <Position>3</Position>
@@ -65,7 +65,7 @@
     </column>
     <column id="18" parent="7" name="CREATED_AT">
       <Position>4</Position>
-      <DataType>VARBINARY(255)|-3</DataType>
+      <DataType>TIMESTAMP(26)|93</DataType>
     </column>
     <column id="19" parent="7" name="CREATOR_ID">
       <Position>5</Position>
@@ -81,7 +81,7 @@
     </column>
     <column id="22" parent="7" name="PUBLISHED_AT">
       <Position>8</Position>
-      <DataType>VARBINARY(255)|-3</DataType>
+      <DataType>TIMESTAMP(26)|93</DataType>
     </column>
     <column id="23" parent="7" name="PUBLISHER_ID">
       <Position>9</Position>
@@ -97,13 +97,13 @@
     </column>
     <column id="26" parent="7" name="VERIFIED_AT">
       <Position>12</Position>
-      <DataType>VARBINARY(255)|-3</DataType>
+      <DataType>TIMESTAMP(26)|93</DataType>
     </column>
     <column id="27" parent="7" name="VERIFIER_ID">
       <Position>13</Position>
       <DataType>BIGINT(64)|-5</DataType>
     </column>
-    <key id="28" parent="7" name="SYS_PK_10096">
+    <key id="28" parent="7" name="SYS_PK_10351">
       <NameSurrogate>1</NameSurrogate>
       <ColNames>NUMBER</ColNames>
       <Primary>1</Primary>

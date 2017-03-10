@@ -1,17 +1,49 @@
 package pl.com.bottega.dms.application;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 public class DocumentSearchResults {
-    private String phrase;
-    private String status;
 
-    private LocalDateTime createdAfter;
-    private LocalDateTime createdBefore;
+    private List<DocumentDto> documents;
+    private Integer pageNumber;
+    private Integer perPage;
 
-    private Long creatorId;
+    private Long pageCount;
 
-    private Long pageNumber;
-    private Long perPage;
+    public Integer getPerPage() {
+        return perPage;
+    }
 
+    public Long getPageCount() {
+        return pageCount;
+    }
+
+    public void setPagesCount(Long pageCount) {
+        this.pageCount = pageCount;
+    }
+
+    public List<DocumentDto> getDocuments() {
+        return documents;
+    }
+
+    public void setDocuments(List<DocumentDto> documents) {
+        this.documents = documents;
+    }
+
+
+    public Long getPagesCount() {
+        return pageCount;
+    }
+
+    public Integer getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPerPage(Integer perPage) {
+        this.perPage = perPage;
+    }
+
+    public void setPageNumber(Integer pageNumber) {
+        this.pageNumber = pageNumber;
+    }
 }

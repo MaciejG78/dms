@@ -10,5 +10,4 @@ public class DmsApplication {
     public static void main(String[] args) {
         ApplicationContext ctx = SpringApplication.run(DmsApplication.class, args);
     }
-
 }

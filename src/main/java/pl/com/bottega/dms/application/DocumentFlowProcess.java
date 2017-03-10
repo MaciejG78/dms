@@ -1,9 +1,7 @@
 package pl.com.bottega.dms.application;
 
 import pl.com.bottega.dms.model.DocumentNumber;
-import pl.com.bottega.dms.model.commands.ChangeDocumentCommand;
-import pl.com.bottega.dms.model.commands.CreateDocumentCommand;
-import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
+import pl.com.bottega.dms.model.commands.*;
 
 public interface DocumentFlowProcess {
 
@@ -17,4 +15,7 @@ public interface DocumentFlowProcess {
 
     void archive(DocumentNumber documentNumber);
 
+    void confirm(ConfirmDocumentCommand cmd);
+
+    void confirmFor(ConfirmForDocumentCommand cmd);
 }

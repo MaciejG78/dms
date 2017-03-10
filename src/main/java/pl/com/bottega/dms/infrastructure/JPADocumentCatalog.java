@@ -4,12 +4,17 @@ import pl.com.bottega.dms.application.*;
 import pl.com.bottega.dms.model.Confirmation;
 import pl.com.bottega.dms.model.Document;
 import pl.com.bottega.dms.model.DocumentNumber;
+import pl.com.bottega.dms.model.DocumentStatus;
 
 import javax.persistence.EntityManager;
+import javax.persistence.FetchType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.criteria.*;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class JPADocumentCatalog implements DocumentCatalog {
 
@@ -18,7 +23,193 @@ public class JPADocumentCatalog implements DocumentCatalog {
 
     @Override
     public DocumentSearchResults find(DocumentQuery documentQuery) {
-        return null;
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        DocumentSearchResults results = new DocumentSearchResults();
+
+        List<DocumentDto> dtos = queryDocuments(documentQuery, criteriaBuilder);
+        Long total = queryTotalCount(documentQuery, criteriaBuilder);
+
+        results.setPagesCount(total / documentQuery.getPerPage() + (total % documentQuery.getPerPage() == 0 ? 0 : 1));
+        results.setDocuments(dtos);
+        results.setPerPage(documentQuery.getPerPage());
+        results.setPageNumber(documentQuery.getPageNumber());
+        return results;
+    }
+
+    private Long queryTotalCount(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder) {
+        CriteriaQuery<Long> countCriteriaQuery = criteriaBuilder.createQuery(Long.class);
+        Root<Document> countRoot = countCriteriaQuery.from(Document.class);
+        Set<Predicate> countPredicates = createPredicates(documentQuery, criteriaBuilder, countRoot);
+        countCriteriaQuery.select(criteriaBuilder.count(countRoot));
+        countCriteriaQuery.where(countPredicates.toArray(new Predicate[]{}));
+        Query countQuery = entityManager.createQuery(countCriteriaQuery);
+        return (Long) countQuery.getSingleResult();
+    }
+
+    private List<DocumentDto> queryDocuments(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder) {
+        CriteriaQuery<Document> criteriaQuery = criteriaBuilder.createQuery(Document.class);
+        Root<Document> root = criteriaQuery.from(Document.class);
+        root.fetch("confirmations", JoinType.LEFT);
+        Set<Predicate> predicates = createPredicates(documentQuery, criteriaBuilder, root);
+        criteriaQuery.where(predicates.toArray(new Predicate[]{}));
+        criteriaSortBy(documentQuery, criteriaBuilder, criteriaQuery, root);
+        Query query = entityManager.createQuery(criteriaQuery);
+        query.setMaxResults(documentQuery.getPerPage());
+        query.setFirstResult(getFirstResultOffset(documentQuery));
+        List<Document> documents = query.getResultList();
+        return getDocumentDtos(documents);
+    }
+
+    private void criteriaSortBy(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, CriteriaQuery<Document> criteriaQuery, Root<Document> root) {
+        if (documentQuery.getSortBy() != null) {
+            if (documentQuery.getSortOrder() == "DESC") {
+                if (documentQuery.getSortBy() == "number")
+                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("number")));
+                if (documentQuery.getSortBy() == "title")
+                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("title")));
+                if (documentQuery.getSortBy() == "status")
+                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("status")));
+                if (documentQuery.getSortBy() == "createdAt")
+                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("createdAt")));
+                if (documentQuery.getSortBy() == "changedAt")
+                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("changedAt")));
+                if (documentQuery.getSortBy() == "verifiedAt")
+                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("verifiedAt")));
+                if (documentQuery.getSortBy() == "publishedAt")
+                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("publishedAt")));
+            }
+        } else {
+            if (documentQuery.getSortBy() == "number")
+                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("number")));
+            if (documentQuery.getSortBy() == "title")
+                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("title")));
+            if (documentQuery.getSortBy() == "status")
+                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("status")));
+            if (documentQuery.getSortBy() == "createdAt")
+                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("createdAt")));
+            if (documentQuery.getSortBy() == "changedAt")
+                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("changedAt")));
+            if (documentQuery.getSortBy() == "verifiedAt")
+                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("verifiedAt")));
+            if (documentQuery.getSortBy() == "publishedAt")
+                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("publishedAt")));
+        }
+    }
+
+    private List<DocumentDto> getDocumentDtos(List<Document> documents) {
+        List<DocumentDto> dtos = new LinkedList<>();
+        for (Document document : documents) {
+            if (document.getStatus() != DocumentStatus.ARCHIVED)
+                dtos.add(createDocumentDto(document));
+        }
+        return dtos;
+    }
+
+    private int getFirstResultOffset(DocumentQuery documentQuery) {
+        return (documentQuery.getPageNumber() - 1) * documentQuery.getPerPage();
+    }
+
+    private Set<Predicate> createPredicates(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root) {
+        Set<Predicate> predicates = new HashSet<>();
+        addPhrasePredicate(documentQuery, criteriaBuilder, root, predicates);
+        addStatusPredicate(documentQuery, criteriaBuilder, root, predicates);
+        addCreatorIdPredicate(documentQuery, criteriaBuilder, root, predicates);
+        addEditorIdPredicate(documentQuery, criteriaBuilder, root, predicates);
+        addVerifierIdPredicate(documentQuery, criteriaBuilder, root, predicates);
+        addPublisherIdPredicate(documentQuery, criteriaBuilder, root, predicates);
+        addCreatedBeforePredicate(documentQuery, criteriaBuilder, root, predicates);
+        addCreatedAfterPredicate(documentQuery, criteriaBuilder, root, predicates);
+        addChangedBeforePredicate(documentQuery, criteriaBuilder, root, predicates);
+        addChangedAfterPredicate(documentQuery, criteriaBuilder, root, predicates);
+        addVerifiedBeforePredicate(documentQuery, criteriaBuilder, root, predicates);
+        addVerifiedAfterPredicate(documentQuery, criteriaBuilder, root, predicates);
+        addPublishedBeforePredicate(documentQuery, criteriaBuilder, root, predicates);
+        addPublishedAfterPredicate(documentQuery, criteriaBuilder, root, predicates);
+        return predicates;
+    }
+
+    private void addSortByPredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+    }
+
+    private void addPublisherIdPredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getPublisherId() != null) {
+            predicates.add(criteriaBuilder.equal(root.get("publisherId"), documentQuery.getPublisherId()));
+        }
+    }
+
+    private void addVerifierIdPredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getVerifierId() != null) {
+            predicates.add(criteriaBuilder.equal(root.get("verifierId"), documentQuery.getVerifierId()));
+        }
+    }
+
+    private void addEditorIdPredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getEditorId() != null) {
+            predicates.add(criteriaBuilder.equal(root.get("editorId"), documentQuery.getEditorId()));
+        }
+    }
+
+    private void addPublishedAfterPredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getPublishedAfter() != null)
+            predicates.add(criteriaBuilder.greaterThan(root.get("publishedAt"), documentQuery.getPublishedAfter()));
+    }
+
+    private void addPublishedBeforePredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getPublishedBefore() != null)
+            predicates.add(criteriaBuilder.lessThan(root.get("publishedAt"), documentQuery.getPublishedBefore()));
+    }
+
+    private void addVerifiedAfterPredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getVerifiedAfter() != null)
+            predicates.add(criteriaBuilder.greaterThan(root.get("verifiedAt"), documentQuery.getVerifiedAfter()));
+    }
+
+    private void addVerifiedBeforePredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getVerifiedBefore() != null)
+            predicates.add(criteriaBuilder.lessThan(root.get("verifiedAt"), documentQuery.getVerifiedBefore()));
+    }
+
+    private void addChangedAfterPredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getChangedAfter() != null)
+            predicates.add(criteriaBuilder.greaterThan(root.get("changedAt"), documentQuery.getChangedAfter()));
+    }
+
+    private void addChangedBeforePredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getChangedBefore() != null)
+            predicates.add(criteriaBuilder.lessThan(root.get("changedAt"), documentQuery.getChangedBefore()));
+    }
+
+    private void addCreatedAfterPredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getCreatedAfter() != null)
+            predicates.add(criteriaBuilder.greaterThan(root.get("createdAt"), documentQuery.getCreatedAfter()));
+    }
+
+    private void addCreatedBeforePredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getCreatedBefore() != null)
+            predicates.add(criteriaBuilder.lessThan(root.get("createdAt"), documentQuery.getCreatedBefore()));
+    }
+
+    private void addCreatorIdPredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getCreatorId() != null) {
+            predicates.add(criteriaBuilder.equal(root.get("creatorId"), documentQuery.getCreatorId()));
+        }
+    }
+
+    private void addStatusPredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getStatus() != null) {
+            predicates.add(criteriaBuilder.equal(root.get("status"), DocumentStatus.valueOf(documentQuery.getStatus())));
+        }
+    }
+
+    private void addPhrasePredicate(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root, Set<Predicate> predicates) {
+        if (documentQuery.getPhrase() != null) {
+            String likeExpression = "%" + documentQuery.getPhrase() + "%";
+            predicates.add(criteriaBuilder.or(
+                    criteriaBuilder.like(root.get("title"), likeExpression),
+                    criteriaBuilder.like(root.get("content"), likeExpression),
+                    criteriaBuilder.like(root.get("number").get("number"), likeExpression)
+            ));
+        }
     }
 
     @Override
@@ -26,13 +217,18 @@ public class JPADocumentCatalog implements DocumentCatalog {
         Query query = entityManager.createQuery("FROM Document d LEFT JOIN FETCH d.confirmations WHERE d.number = :nr");
         query.setParameter("nr", documentNumber);
         Document document = (Document) query.getResultList().get(0);
+        DocumentDto documentDto = createDocumentDto(document);
+        return documentDto;
+    }
+
+    private DocumentDto createDocumentDto(Document document) {
         DocumentDto documentDto = new DocumentDto();
-        documentDto.setNumber(documentNumber.getNumber());
+        documentDto.setNumber(document.getNumber().getNumber());
         documentDto.setTitle(document.getTitle());
         documentDto.setContent(document.getContent());
         documentDto.setStatus(document.getStatus().name());
         List<ConfirmationDto> confirmationDtos = new LinkedList<>();
-        for(Confirmation confirmation : document.getConfirmations()) {
+        for (Confirmation confirmation : document.getConfirmations()) {
             ConfirmationDto dto = createConfirmationDto(confirmation);
             confirmationDtos.add(dto);
         }
@@ -45,7 +241,7 @@ public class JPADocumentCatalog implements DocumentCatalog {
         dto.setConfirmed(confirmation.isConfirmed());
         dto.setConfirmedAt(confirmation.getConfirmationDate());
         dto.setOwnerEmployeeId(confirmation.getOwner().getId());
-        if(confirmation.hasProxy())
+        if (confirmation.hasProxy())
             dto.setProxyEmployeeId(confirmation.getProxy().getId());
         return dto;
     }
