@@ -9,12 +9,11 @@ public class DocumentDto {
 
     private String content;
 
-    private String status;
     private LocalDateTime createdAt;
 
+    private String status;
 
     private List<ConfirmationDto> confirmations;
-
     public String getTitle() {
         return title;
     }

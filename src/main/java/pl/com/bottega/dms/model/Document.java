@@ -1,6 +1,7 @@
 package pl.com.bottega.dms.model;
 
 import pl.com.bottega.dms.model.commands.*;
+import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
@@ -95,13 +96,13 @@ public class Document {
     }
 
     public void confirm(ConfirmDocumentCommand cmd) {
-        Confirmation confirmation = getConfirmation(cmd.getEmployeeId());
+        Confirmation confirmation = getConfirmation(cmd.getEmployeeId());  //Właściciel i zarazem osoba potwierdzająca
         confirmation.confirm();
     }
 
     public void confirmFor(ConfirmForDocumentCommand cmd) {
-        Confirmation confirmation = getConfirmation(cmd.getEmployeeId());
-        confirmation.confirmFor(cmd.getConfirmingEmployeeId());
+        Confirmation confirmation = getConfirmation(cmd.getConfirmingEmployeeId()); //Osoba za którą trzeba potwierdzić (owner)
+        confirmation.confirmFor(cmd.getEmployeeId()); //Osoba która potwierdza za właściciela (proxy - ten zalogowany)
     }
 
     public DocumentStatus getStatus() {
@@ -173,6 +174,6 @@ public class Document {
             if (confirmation.isOwnedBy(employeeId))
                 return confirmation;
         }
-        throw new DocumentStatusException(String.format("No confirmation for %s", employeeId));
+        throw new DocumentStatusException(String.format("No confirmation for %s", employeeId.getId()));
     }
 }

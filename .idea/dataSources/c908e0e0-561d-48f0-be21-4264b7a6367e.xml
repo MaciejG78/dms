@@ -14,98 +14,117 @@
     <schema id="5" parent="2" name="SYSTEM_LOBS"/>
     <table id="6" parent="4" name="CONFIRMATION"/>
     <table id="7" parent="4" name="DOCUMENT"/>
-    <column id="8" parent="6" name="ID">
+    <table id="8" parent="4" name="USER"/>
+    <column id="9" parent="6" name="ID">
       <Position>1</Position>
       <DataType>BIGINT(64)|-5</DataType>
       <NotNull>1</NotNull>
       <SequenceIdentity>1</SequenceIdentity>
     </column>
-    <column id="9" parent="6" name="CONFIRMATION_DATE">
+    <column id="10" parent="6" name="CONFIRMATION_DATE">
       <Position>2</Position>
       <DataType>TIMESTAMP(26)|93</DataType>
     </column>
-    <column id="10" parent="6" name="OWNER_ID">
+    <column id="11" parent="6" name="OWNER_ID">
       <Position>3</Position>
       <DataType>BIGINT(64)|-5</DataType>
     </column>
-    <column id="11" parent="6" name="PROXY_ID">
+    <column id="12" parent="6" name="PROXY_ID">
       <Position>4</Position>
       <DataType>BIGINT(64)|-5</DataType>
     </column>
-    <column id="12" parent="6" name="DOCUMENT_NUMBER">
+    <column id="13" parent="6" name="DOCUMENT_NUMBER">
       <Position>5</Position>
       <DataType>VARCHAR(255)|12</DataType>
     </column>
-    <key id="13" parent="6" name="SYS_PK_10348">
+    <key id="14" parent="6" name="SYS_PK_10092">
       <NameSurrogate>1</NameSurrogate>
       <ColNames>ID</ColNames>
       <Primary>1</Primary>
     </key>
-    <foreign-key id="14" parent="6" name="FKG3XETQBH5DQU7T1XEW2OSIUIS">
+    <foreign-key id="15" parent="6" name="FKG3XETQBH5DQU7T1XEW2OSIUIS">
       <ColNames>DOCUMENT_NUMBER</ColNames>
       <RefSchemaName>PUBLIC</RefSchemaName>
       <RefTableName>DOCUMENT</RefTableName>
-      <RefKeyName>SYS_PK_10351</RefKeyName>
+      <RefKeyName>SYS_PK_10096</RefKeyName>
       <RefColNames>NUMBER</RefColNames>
       <OnDelete>no-action</OnDelete>
       <OnUpdate>no-action</OnUpdate>
     </foreign-key>
-    <column id="15" parent="7" name="NUMBER">
+    <column id="16" parent="7" name="NUMBER">
       <Position>1</Position>
       <DataType>VARCHAR(255)|12</DataType>
       <NotNull>1</NotNull>
     </column>
-    <column id="16" parent="7" name="CHANGED_AT">
+    <column id="17" parent="7" name="CHANGED_AT">
       <Position>2</Position>
       <DataType>TIMESTAMP(26)|93</DataType>
     </column>
-    <column id="17" parent="7" name="CONTENT">
+    <column id="18" parent="7" name="CONTENT">
       <Position>3</Position>
       <DataType>VARCHAR(255)|12</DataType>
     </column>
-    <column id="18" parent="7" name="CREATED_AT">
+    <column id="19" parent="7" name="CREATED_AT">
       <Position>4</Position>
       <DataType>TIMESTAMP(26)|93</DataType>
     </column>
-    <column id="19" parent="7" name="CREATOR_ID">
+    <column id="20" parent="7" name="CREATOR_ID">
       <Position>5</Position>
       <DataType>BIGINT(64)|-5</DataType>
     </column>
-    <column id="20" parent="7" name="EDITOR_ID">
+    <column id="21" parent="7" name="EDITOR_ID">
       <Position>6</Position>
       <DataType>BIGINT(64)|-5</DataType>
     </column>
-    <column id="21" parent="7" name="PRINT_COST">
+    <column id="22" parent="7" name="PRINT_COST">
       <Position>7</Position>
       <DataType>NUMERIC(19,2)|2</DataType>
     </column>
-    <column id="22" parent="7" name="PUBLISHED_AT">
+    <column id="23" parent="7" name="PUBLISHED_AT">
       <Position>8</Position>
       <DataType>TIMESTAMP(26)|93</DataType>
     </column>
-    <column id="23" parent="7" name="PUBLISHER_ID">
+    <column id="24" parent="7" name="PUBLISHER_ID">
       <Position>9</Position>
       <DataType>BIGINT(64)|-5</DataType>
     </column>
-    <column id="24" parent="7" name="STATUS">
+    <column id="25" parent="7" name="STATUS">
       <Position>10</Position>
       <DataType>VARCHAR(255)|12</DataType>
     </column>
-    <column id="25" parent="7" name="TITLE">
+    <column id="26" parent="7" name="TITLE">
       <Position>11</Position>
       <DataType>VARCHAR(255)|12</DataType>
     </column>
-    <column id="26" parent="7" name="VERIFIED_AT">
+    <column id="27" parent="7" name="VERIFIED_AT">
       <Position>12</Position>
       <DataType>TIMESTAMP(26)|93</DataType>
     </column>
-    <column id="27" parent="7" name="VERIFIER_ID">
+    <column id="28" parent="7" name="VERIFIER_ID">
       <Position>13</Position>
       <DataType>BIGINT(64)|-5</DataType>
     </column>
-    <key id="28" parent="7" name="SYS_PK_10351">
+    <key id="29" parent="7" name="SYS_PK_10096">
       <NameSurrogate>1</NameSurrogate>
       <ColNames>NUMBER</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <column id="30" parent="8" name="ID">
+      <Position>1</Position>
+      <DataType>BIGINT(64)|-5</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="31" parent="8" name="HASHED_PASSWORD">
+      <Position>2</Position>
+      <DataType>VARCHAR(255)|12</DataType>
+    </column>
+    <column id="32" parent="8" name="USER_NAME">
+      <Position>3</Position>
+      <DataType>VARCHAR(255)|12</DataType>
+    </column>
+    <key id="33" parent="8" name="SYS_PK_10142">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>ID</ColNames>
       <Primary>1</Primary>
     </key>
   </database-model>

@@ -1,6 +1,7 @@
 package pl.com.bottega.dms.infrastructure;
 
 import pl.com.bottega.dms.application.*;
+import pl.com.bottega.dms.application.user.RequiresAuth;
 import pl.com.bottega.dms.model.Confirmation;
 import pl.com.bottega.dms.model.Document;
 import pl.com.bottega.dms.model.DocumentNumber;
@@ -16,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+@RequiresAuth
 public class JPADocumentCatalog implements DocumentCatalog {
 
     @PersistenceContext
@@ -62,37 +64,13 @@ public class JPADocumentCatalog implements DocumentCatalog {
 
     private void criteriaSortBy(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, CriteriaQuery<Document> criteriaQuery, Root<Document> root) {
         if (documentQuery.getSortBy() != null) {
+            String sortBy = documentQuery.getSortBy();
             if (documentQuery.getSortOrder() == "DESC") {
-                if (documentQuery.getSortBy() == "number")
-                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("number")));
-                if (documentQuery.getSortBy() == "title")
-                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("title")));
-                if (documentQuery.getSortBy() == "status")
-                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("status")));
-                if (documentQuery.getSortBy() == "createdAt")
-                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("createdAt")));
-                if (documentQuery.getSortBy() == "changedAt")
-                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("changedAt")));
-                if (documentQuery.getSortBy() == "verifiedAt")
-                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("verifiedAt")));
-                if (documentQuery.getSortBy() == "publishedAt")
-                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("publishedAt")));
+                criteriaQuery.orderBy(criteriaBuilder.desc(root.get(sortBy)));
+                }
+            else {
+                criteriaQuery.orderBy(criteriaBuilder.asc(root.get(sortBy)));
             }
-        } else {
-            if (documentQuery.getSortBy() == "number")
-                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("number")));
-            if (documentQuery.getSortBy() == "title")
-                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("title")));
-            if (documentQuery.getSortBy() == "status")
-                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("status")));
-            if (documentQuery.getSortBy() == "createdAt")
-                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("createdAt")));
-            if (documentQuery.getSortBy() == "changedAt")
-                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("changedAt")));
-            if (documentQuery.getSortBy() == "verifiedAt")
-                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("verifiedAt")));
-            if (documentQuery.getSortBy() == "publishedAt")
-                criteriaQuery.orderBy(criteriaBuilder.asc(root.get("publishedAt")));
         }
     }
 

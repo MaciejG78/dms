@@ -7,20 +7,7 @@ public class DocumentSearchResults {
     private List<DocumentDto> documents;
     private Integer pageNumber;
     private Integer perPage;
-
-    private Long pageCount;
-
-    public Integer getPerPage() {
-        return perPage;
-    }
-
-    public Long getPageCount() {
-        return pageCount;
-    }
-
-    public void setPagesCount(Long pageCount) {
-        this.pageCount = pageCount;
-    }
+    private Long pagesCount;
 
     public List<DocumentDto> getDocuments() {
         return documents;
@@ -30,20 +17,27 @@ public class DocumentSearchResults {
         this.documents = documents;
     }
 
-
     public Long getPagesCount() {
-        return pageCount;
+        return pagesCount;
     }
 
     public Integer getPageNumber() {
         return pageNumber;
     }
 
+    public void setPageNumber(Integer pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+
+    public Integer getPerPage() {
+        return perPage;
+    }
+
     public void setPerPage(Integer perPage) {
         this.perPage = perPage;
     }
 
-    public void setPageNumber(Integer pageNumber) {
-        this.pageNumber = pageNumber;
+    public void setPagesCount(Long pagesCount) {
+        this.pagesCount = pagesCount;
     }
 }

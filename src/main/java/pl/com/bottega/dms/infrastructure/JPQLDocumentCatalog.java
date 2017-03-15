@@ -3,6 +3,7 @@ package pl.com.bottega.dms.infrastructure;
 import com.sun.deploy.util.StringUtils;
 import org.springframework.stereotype.Component;
 import pl.com.bottega.dms.application.*;
+import pl.com.bottega.dms.application.user.RequiresAuth;
 import pl.com.bottega.dms.model.Confirmation;
 import pl.com.bottega.dms.model.Document;
 import pl.com.bottega.dms.model.DocumentNumber;
@@ -20,6 +21,7 @@ import java.util.Set;
  * Created by maciek on 05.03.2017.
  */
 @Component
+@RequiresAuth
 public class JPQLDocumentCatalog implements DocumentCatalog {
 
     @PersistenceContext
@@ -36,21 +38,7 @@ public class JPQLDocumentCatalog implements DocumentCatalog {
             jpqlQuery += where;
         }
         if (documentQuery.getSortBy() != null) {
-            String sortAndOrderBy = " ORDER BY ";
-            if (documentQuery.getSortBy() == "number")
-                sortAndOrderBy += "d.number";
-            if (documentQuery.getSortBy() == "title")
-                sortAndOrderBy += "d.title";
-            if (documentQuery.getSortBy() == "status")
-                sortAndOrderBy += "d.status";
-            if (documentQuery.getSortBy() == "createdAt")
-                sortAndOrderBy += "d.createdAt";
-            if (documentQuery.getSortBy() == "changedAt")
-                sortAndOrderBy += "d.createdAt";
-            if (documentQuery.getSortBy() == "verifiedAt")
-                sortAndOrderBy += "d.createdAt";
-            if (documentQuery.getSortBy() == "publishedAt")
-                sortAndOrderBy += "d.createdAt";
+            String sortAndOrderBy = " ORDER BY d." + documentQuery.getSortBy();
             if (documentQuery.getSortOrder() == "DESC")
                 sortAndOrderBy += " DESC";
             else
@@ -97,7 +85,7 @@ public class JPQLDocumentCatalog implements DocumentCatalog {
         if (documentQuery.getVerifiedBefore() != null)
             query.setParameter("verifiedBefore", documentQuery.getVerifiedBefore());
         if (documentQuery.getVerifiedAfter() != null)
-            query.setParameter("verifiedAfter", documentQuery.getVerifiedBefore());
+            query.setParameter("verifiedAfter", documentQuery.getVerifiedAfter());
         if (documentQuery.getPublishedBefore() != null)
             query.setParameter("publishedBefore", documentQuery.getPublishedBefore());
         if (documentQuery.getPublishedAfter() != null)
