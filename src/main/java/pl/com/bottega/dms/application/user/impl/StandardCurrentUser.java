@@ -33,7 +33,7 @@ public class StandardCurrentUser implements CurrentUser {
             roles.add("QUALITY_STAFF");
         }
         else {
-                roles.add("STAFF");
+            roles.add("STAFF");
             }
         return roles;
     }

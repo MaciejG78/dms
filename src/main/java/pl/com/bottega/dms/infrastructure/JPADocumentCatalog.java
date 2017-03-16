@@ -8,7 +8,6 @@ import pl.com.bottega.dms.model.DocumentNumber;
 import pl.com.bottega.dms.model.DocumentStatus;
 
 import javax.persistence.EntityManager;
-import javax.persistence.FetchType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.criteria.*;

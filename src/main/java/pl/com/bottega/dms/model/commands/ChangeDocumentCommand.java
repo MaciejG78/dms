@@ -1,6 +1,5 @@
 package pl.com.bottega.dms.model.commands;
 
-import pl.com.bottega.dms.model.DocumentNumber;
 import pl.com.bottega.dms.model.EmployeeId;
 
 public class ChangeDocumentCommand implements EmployeeAware, Validatable{

@@ -3,7 +3,6 @@ package pl.com.bottega.dms.model.commands;
 import pl.com.bottega.dms.model.EmployeeId;
 
 import java.util.Collection;
-import java.util.List;
 
 public class PublishDocumentCommand implements EmployeeAware, Validatable{
     private EmployeeId employeeId;

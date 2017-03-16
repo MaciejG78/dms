@@ -10,7 +10,7 @@ import pl.com.bottega.dms.model.commands.ConfirmDocumentCommand;
 import pl.com.bottega.dms.model.commands.ConfirmForDocumentCommand;
 
 @Transactional
-@RequiresAuth(roles = {"MANAGER", "QUALITY-MANAGER"})
+@RequiresAuth(roles = {"MANAGER", "QUALITY_MANAGER"})
 public class StandardReadingConfirmator implements ReadingConfirmator {
 
     private DocumentRepository documentRepository;

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import pl.com.bottega.dms.application.user.AuthRequiredException;
 import pl.com.bottega.dms.application.user.CurrentUser;
 import pl.com.bottega.dms.application.user.RequiresAuth;
+import pl.com.bottega.dms.application.user.PermissionsRequiredException;
 
 /**
  * Created by maciek on 12.03.2017.
@@ -15,23 +16,27 @@ import pl.com.bottega.dms.application.user.RequiresAuth;
 public class AuthAspect {
     private CurrentUser currentUser;
 
-
-
     public AuthAspect(CurrentUser currentUser) {
         this.currentUser = currentUser;
     }
 
-    @Before("@within(pl.com.bottega.dms.application.user.RequiresAuth) || @annotation(pl.com.bottega.dms.application.user.RequiresAuth)")
-    public void ensureAuth(RequiresAuth roles){
-        if(currentUser.getEmployeeId() == null);
+
+    //@Before("@within(pl.com.bottega.dms.application.user.RequiresAuth) || @annotation(pl.com.bottega.dms.application.user.RequiresAuth)")
+    @Before("execution(* *.*(..)) && @annotation(requiresAuth)")
+    public void ensureAuth(RequiresAuth requiresAuth){
+
+        if(currentUser.getEmployeeId() == null)
             throw new AuthRequiredException("You are not logged");
-        outerLoop:
-        if (roles.roles().length != 0){
-            for (String role : roles.roles()){
-                if (currentUser.getRoles().contains(role))
-                    break outerLoop;
-            }
-            throw new AuthRequiredException("You have not enought privilages");
+
+        if (!checkPermissions(requiresAuth))
+            throw new PermissionsRequiredException("You haven't got required permissions");
+    }
+
+    public boolean checkPermissions(RequiresAuth requiresAuth) {
+        for (String role : requiresAuth.roles()) {
+            if (currentUser.getRoles().contains(role))
+                return true;
         }
+        return false;
     }
 }

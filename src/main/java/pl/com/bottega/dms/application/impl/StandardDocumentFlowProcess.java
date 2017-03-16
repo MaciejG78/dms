@@ -36,7 +36,6 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
     }
 
     @Override
-    @RequiresAuth
     public DocumentNumber create(CreateDocumentCommand cmd) {
         Document document = new Document(cmd, numberGenerator);
         documentRepository.put(document);
@@ -44,7 +43,7 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
     }
 
     @Override
-    @RequiresAuth(roles = {"STAFF", "QUALITY-STAFF", "MANAGER", "QUALITY-MANAGER"})
+    @RequiresAuth(roles = {"STAFF", "QUALITY_STAFF", "MANAGER", "QUALITY_MANAGER"})
     public void change(ChangeDocumentCommand cmd) {
         DocumentNumber documentNumber = new DocumentNumber(cmd.getNumber());
         Document document = documentRepository.get(documentNumber);
@@ -52,14 +51,14 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
     }
 
     @Override
-    @RequiresAuth(roles = {"QUALITY-STAFF", "MANAGER", "QUALITY-MANAGER"})
+    @RequiresAuth(roles = {"QUALITY_STAFF", "MANAGER", "QUALITY_MANAGER"})
     public void verify(DocumentNumber documentNumber) {
         Document document = documentRepository.get(documentNumber);
         document.verify(currentUser.getEmployeeId());
     }
 
     @Override
-    @RequiresAuth(roles = {"MANAGER", "QUALITY-MANAGER"})
+    @RequiresAuth(roles = {"MANAGER", "QUALITY_MANAGER"})
     public void publish(PublishDocumentCommand cmd) {
         DocumentNumber documentNumber = new DocumentNumber(cmd.getNumber());
         Document document = documentRepository.get(documentNumber);
@@ -68,7 +67,7 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
     }
 
     @Override
-    @RequiresAuth(roles = {"MANAGER", "QUALITY-MANAGER"})
+    @RequiresAuth(roles = {"MANAGER", "QUALITY_MANAGER"})
     public void archive(DocumentNumber documentNumber) {
         Document document = documentRepository.get(documentNumber);
         document.archive(currentUser.getEmployeeId());

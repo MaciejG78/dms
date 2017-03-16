@@ -1,7 +1,5 @@
 package pl.com.bottega.dms.model.commands;
 
-import pl.com.bottega.dms.model.commands.Validatable;
-
 /**
  * Created by maciek on 12.03.2017.
  */
