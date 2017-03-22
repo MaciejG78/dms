@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 import pl.com.bottega.dms.DmsApplication;
 import pl.com.bottega.dms.application.DocumentCatalog;
 import pl.com.bottega.dms.application.DocumentDto;
@@ -14,13 +15,14 @@ import pl.com.bottega.dms.application.user.AuthProcess;
 import pl.com.bottega.dms.application.user.CreateAccountCommand;
 import pl.com.bottega.dms.application.user.LoginCommand;
 import pl.com.bottega.dms.model.DocumentNumber;
+import pl.com.bottega.dms.model.DocumentType;
 import pl.com.bottega.dms.model.EmployeeId;
 import pl.com.bottega.dms.model.commands.ChangeDocumentCommand;
 import pl.com.bottega.dms.model.commands.CreateDocumentCommand;
 import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
 import pl.com.bottega.dms.shared.AuthHelper;
 
-import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,7 +79,7 @@ public class DocumentFlowTest {
     public void shouldVerifyDocument() {
         //given
         DocumentNumber documentNumber = createDocument();
-
+        updateDocument(documentNumber);
         //when
         documentFlowProcess.verify(documentNumber);
 
@@ -103,6 +105,7 @@ public class DocumentFlowTest {
     public void shouldPublishDocument() {
         //given
         DocumentNumber documentNumber = createDocument();
+        updateDocument(documentNumber);
         documentFlowProcess.verify(documentNumber);
 
         //when
@@ -119,7 +122,17 @@ public class DocumentFlowTest {
     private DocumentNumber createDocument() {
         CreateDocumentCommand cmd = new CreateDocumentCommand();
         cmd.setTitle("test");
+        cmd.setDocumentType(DocumentType.MANUAL);
         return documentFlowProcess.create(cmd);
+    }
+
+    private void updateDocument(DocumentNumber nr) {
+        ChangeDocumentCommand cmd = new ChangeDocumentCommand();
+        cmd.setNumber(nr.getNumber());
+        cmd.setContent("blah blah");
+        cmd.setExpiresAt(LocalDateTime.now().plusDays(365L));
+        cmd.setTitle("test");
+        documentFlowProcess.change(cmd);
     }
 
 }

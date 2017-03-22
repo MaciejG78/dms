@@ -23,7 +23,7 @@ public class JPAUserRepositoryTest {
     @Test
     public void shouldFindUserByUsernameAndPassword() {
         //given
-        User user = new User(new EmployeeId(4L), "janek", "xxx");
+        User user = new User(new EmployeeId(1L), "janek", "xxx");
         jpaUserRepository.put(user);
 
         //when
@@ -31,17 +31,17 @@ public class JPAUserRepositoryTest {
 
         // then
         assertThat(repoUser).isNotNull();
-        assertThat(repoUser.getEmployeeId()).isEqualTo(new EmployeeId(4L));
+        assertThat(repoUser.getEmployeeId()).isEqualTo(new EmployeeId(1L));
     }
 
     @Test
     public void shouldFindUserByEmployeeIdAndPassword() {
         //given
-        User user = new User(new EmployeeId(2L), "janek", "xxx");
+        User user = new User(new EmployeeId(1L), "janek", "xxx");
         jpaUserRepository.put(user);
 
         //when
-        User repoUser = jpaUserRepository.findByLoginAndHashedPassword("2", "xxx");
+        User repoUser = jpaUserRepository.findByLoginAndHashedPassword("1", "xxx");
 
         // then
         assertThat(repoUser).isNotNull();
@@ -51,11 +51,11 @@ public class JPAUserRepositoryTest {
     @Test
     public void shouldNotFindUserWhenLoginOrPasswordAreWrong() {
         //given
-        User user = new User(new EmployeeId(3L), "janek", "xxx");
+        User user = new User(new EmployeeId(1L), "janek", "xxx");
         jpaUserRepository.put(user);
 
         //then
-        assertThat(jpaUserRepository.findByLoginAndHashedPassword("3", "uuu")).isNull();
+        assertThat(jpaUserRepository.findByLoginAndHashedPassword("1", "uuu")).isNull();
         assertThat(jpaUserRepository.findByLoginAndHashedPassword("janek", "uuu")).isNull();
         assertThat(jpaUserRepository.findByLoginAndHashedPassword("2", "xxx")).isNull();
     }

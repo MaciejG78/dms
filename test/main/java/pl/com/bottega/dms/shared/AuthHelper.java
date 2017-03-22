@@ -6,9 +6,6 @@ import pl.com.bottega.dms.application.user.AuthProcess;
 import pl.com.bottega.dms.application.user.CreateAccountCommand;
 import pl.com.bottega.dms.application.user.LoginCommand;
 
-/**
- * Created by maciek on 12.03.2017.
- */
 @Component
 public class AuthHelper {
 
@@ -16,9 +13,13 @@ public class AuthHelper {
     private AuthProcess authProcess;
 
     public void authenticate() {
+        authenticate(1L);
+    }
+
+    public void authenticate(Long employeeId) {
         CreateAccountCommand cmd = new CreateAccountCommand();
         cmd.setUserName("janek");
-        cmd.setEmployeeId(1L);
+        cmd.setEmployeeId(employeeId);
         cmd.setPassword("xxx");
         authProcess.createAccount(cmd);
 
@@ -27,4 +28,5 @@ public class AuthHelper {
         loginCommand.setPassword("xxx");
         authProcess.login(loginCommand);
     }
+
 }

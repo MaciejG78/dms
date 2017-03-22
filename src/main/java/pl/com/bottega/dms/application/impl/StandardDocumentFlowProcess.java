@@ -1,49 +1,52 @@
 package pl.com.bottega.dms.application.impl;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.com.bottega.dms.application.DocumentFlowProcess;
 import pl.com.bottega.dms.application.user.CurrentUser;
 import pl.com.bottega.dms.application.user.RequiresAuth;
-import pl.com.bottega.dms.model.Document;
-import pl.com.bottega.dms.model.DocumentNumber;
-import pl.com.bottega.dms.model.DocumentRepository;
-import pl.com.bottega.dms.model.EmployeeId;
+import pl.com.bottega.dms.model.*;
 import pl.com.bottega.dms.model.commands.ChangeDocumentCommand;
 import pl.com.bottega.dms.model.commands.CreateDocumentCommand;
 import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
-import pl.com.bottega.dms.model.events.DocumentPublishEvent;
+import pl.com.bottega.dms.model.events.DocumentPublishedEvent;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
+import pl.com.bottega.dms.model.validation.DocumentValidator;
+import pl.com.bottega.dms.model.validation.InvalidDocumentException;
 
 @Transactional
-@RequiresAuth
 public class StandardDocumentFlowProcess implements DocumentFlowProcess {
 
-    private NumberGenerator numberGenerator;
+    private DocumentFactory documentFactory;
     private PrintCostCalculator printCostCalculator;
     private DocumentRepository documentRepository;
     private CurrentUser currentUser;
     private ApplicationEventPublisher publisher;
+    private DocumentValidator documentValidator;
 
-    public StandardDocumentFlowProcess(NumberGenerator numberGenerator, PrintCostCalculator printCostCalculator,
-                                       DocumentRepository documentRepository, CurrentUser currentUser, ApplicationEventPublisher publisher) {
-        this.numberGenerator = numberGenerator;
+    public StandardDocumentFlowProcess(DocumentFactory documentFactory, PrintCostCalculator printCostCalculator,
+                                       DocumentRepository documentRepository, CurrentUser currentUser,
+                                       ApplicationEventPublisher publisher, DocumentValidator documentValidator) {
+        this.documentFactory = documentFactory;
         this.printCostCalculator = printCostCalculator;
         this.documentRepository = documentRepository;
         this.currentUser = currentUser;
         this.publisher = publisher;
+        this.documentValidator = documentValidator;
     }
 
     @Override
+    @RequiresAuth("QUALITY_STAFF")
     public DocumentNumber create(CreateDocumentCommand cmd) {
-        Document document = new Document(cmd, numberGenerator);
+        Document document = documentFactory.create(cmd);
         documentRepository.put(document);
         return document.getNumber();
     }
 
     @Override
-    @RequiresAuth(roles = {"STAFF", "QUALITY_STAFF", "MANAGER", "QUALITY_MANAGER"})
+    @RequiresAuth("QUALITY_STAFF")
     public void change(ChangeDocumentCommand cmd) {
         DocumentNumber documentNumber = new DocumentNumber(cmd.getNumber());
         Document document = documentRepository.get(documentNumber);
@@ -51,23 +54,27 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
     }
 
     @Override
-    @RequiresAuth(roles = {"QUALITY_STAFF", "MANAGER", "QUALITY_MANAGER"})
+    @RequiresAuth("QUALITY_MANAGER")
     public void verify(DocumentNumber documentNumber) {
         Document document = documentRepository.get(documentNumber);
+        if(!documentValidator.isValid(document, DocumentStatus.VERIFIED))
+            throw new InvalidDocumentException();
         document.verify(currentUser.getEmployeeId());
     }
 
     @Override
-    @RequiresAuth(roles = {"MANAGER", "QUALITY_MANAGER"})
+    @RequiresAuth("QUALITY_MANAGER")
     public void publish(PublishDocumentCommand cmd) {
         DocumentNumber documentNumber = new DocumentNumber(cmd.getNumber());
         Document document = documentRepository.get(documentNumber);
+        if(!documentValidator.isValid(document, DocumentStatus.PUBLISHED))
+            throw new InvalidDocumentException();
         document.publish(cmd, printCostCalculator);
-        publisher.publishEvent(new DocumentPublishEvent(documentNumber));
+        publisher.publishEvent(new DocumentPublishedEvent(documentNumber));
     }
 
     @Override
-    @RequiresAuth(roles = {"MANAGER", "QUALITY_MANAGER"})
+    @RequiresAuth("QUALITY_MANAGER")
     public void archive(DocumentNumber documentNumber) {
         Document document = documentRepository.get(documentNumber);
         document.archive(currentUser.getEmployeeId());

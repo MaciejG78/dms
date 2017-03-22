@@ -2,15 +2,11 @@ package pl.com.bottega.dms.model.events;
 
 import pl.com.bottega.dms.model.DocumentNumber;
 
-/**
- * Created by maciek on 12.03.2017.
- */
-public class DocumentPublishEvent {
+public class DocumentPublishedEvent {
 
     private DocumentNumber documentNumber;
 
-
-    public DocumentPublishEvent(DocumentNumber documentNumber) {
+    public DocumentPublishedEvent(DocumentNumber documentNumber) {
         this.documentNumber = documentNumber;
     }
 

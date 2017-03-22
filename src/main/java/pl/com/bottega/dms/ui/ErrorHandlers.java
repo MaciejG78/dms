@@ -6,9 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import pl.com.bottega.dms.application.user.AuthRequiredException;
-import pl.com.bottega.dms.application.user.PermissionsRequiredException;
-import pl.com.bottega.dms.model.exceptions.DocumentNotFoundException;
-import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
+import pl.com.bottega.dms.model.DocumentNotFoundException;
+import pl.com.bottega.dms.model.DocumentStatusException;
 import pl.com.bottega.dms.model.commands.CommandInvalidException;
 import pl.com.bottega.dms.model.commands.Validatable;
 
@@ -16,11 +15,11 @@ import pl.com.bottega.dms.model.commands.Validatable;
 public class ErrorHandlers {
 
     @ExceptionHandler(AuthRequiredException.class)
-    public ResponseEntity<String> handleAuthRequiredException(AuthRequiredException ex) {
+    public ResponseEntity<String> handleAuthRequiredException() {
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
         return new ResponseEntity<String>(
-                String.format("{\"error\": \"authentication_required\", \"details\": \"%s\"}", ex.getMessage()),
+                "{\"error\": \"authentication_required\"}",
                 headers,
                 HttpStatus.UNAUTHORIZED
         );
@@ -38,7 +37,7 @@ public class ErrorHandlers {
     }
 
     @ExceptionHandler(CommandInvalidException.class)
-    public ResponseEntity<Validatable.ValidationErrors> handleCommandInvalidException(CommandInvalidException ex){
+    public ResponseEntity<Validatable.ValidationErrors> handleCommandInvalidExeption(CommandInvalidException ex) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
         return new ResponseEntity<Validatable.ValidationErrors>(
@@ -46,29 +45,16 @@ public class ErrorHandlers {
                 headers,
                 HttpStatus.UNPROCESSABLE_ENTITY
         );
-
     }
 
     @ExceptionHandler(DocumentNotFoundException.class)
-    public ResponseEntity<String> handleDocumentNotFoundException(DocumentNotFoundException ex){
+    public ResponseEntity<String> handleDocumentNotFoundException(DocumentNotFoundException ex) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
         return new ResponseEntity<String>(
-                String.format("{\"error\": \"document not found\", \"details\": \"%s\"}", ex.getMessage()),
+                String.format("{\"error\": \"%s\"}", ex.getMessage()),
                 headers,
                 HttpStatus.NOT_FOUND
-        );
-
-    }
-
-    @ExceptionHandler(PermissionsRequiredException.class)
-    public ResponseEntity<String> handlePermissionsRequiredException(PermissionsRequiredException ex) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
-        return new ResponseEntity<String>(
-                String.format("{\"error\": \"permissions_required\", \"details\": \"%s\"}", ex.getMessage()),
-                headers,
-                HttpStatus.UNAUTHORIZED
         );
     }
 

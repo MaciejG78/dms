@@ -10,9 +10,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 import pl.com.bottega.dms.application.DocumentQuery;
 import pl.com.bottega.dms.application.DocumentSearchResults;
-import pl.com.bottega.dms.application.user.AuthProcess;
-import pl.com.bottega.dms.application.user.CreateAccountCommand;
-import pl.com.bottega.dms.application.user.LoginCommand;
 import pl.com.bottega.dms.infrastructure.JPADocumentCatalog;
 import pl.com.bottega.dms.infrastructure.JPQLDocumentCatalog;
 import pl.com.bottega.dms.shared.AuthHelper;
@@ -37,11 +34,10 @@ public class JPADocumentCatalogTest {
         authHelper.authenticate();
     }
 
-
     @Test
     @Sql("/fixtures/documentByPhrase.sql")
     @Transactional
-    public void shouldFindDocumentsByPhrase(){
+    public void shouldFindDocumentsByPhrase() {
         //when
         DocumentQuery documentQuery = new DocumentQuery();
         documentQuery.setPhrase("fancy");
@@ -54,7 +50,7 @@ public class JPADocumentCatalogTest {
     @Test
     @Sql("/fixtures/documentByPhrase.sql")
     @Transactional
-    public void shouldFindDocumentsByPhraseAndStatus() {
+    public void shouldFindDocumentByPhraseAndStatus() {
         //when
         DocumentQuery documentQuery = new DocumentQuery();
         documentQuery.setPhrase("fancy");
@@ -65,37 +61,21 @@ public class JPADocumentCatalogTest {
         assertThat(searchResults.getDocuments().size()).isEqualTo(2);
         assertThat(searchResults.getDocuments().get(0).getNumber()).isEqualTo("0");
         assertThat(searchResults.getDocuments().get(1).getNumber()).isEqualTo("fancy");
-
     }
 
     @Test
     @Sql("/fixtures/documentByPhrase.sql")
     @Transactional
-    public void shouldFindDocumentsByCreatorId() {
+    public void shouldFindDocumentByCreatorId() {
         //when
         DocumentQuery documentQuery = new DocumentQuery();
         documentQuery.setCreatorId(1L);
         DocumentSearchResults searchResults = catalog.find(documentQuery);
 
         //then
-        assertThat(searchResults.getDocuments().size()).isEqualTo(3);
+        assertThat(searchResults.getDocuments().size()).isEqualTo(2);
         assertThat(searchResults.getDocuments().get(0).getNumber()).isEqualTo("0");
-        assertThat(searchResults.getDocuments().get(1).getNumber()).isEqualTo("3");
-        assertThat(searchResults.getDocuments().get(2).getNumber()).isEqualTo("5");
-    }
-
-    @Test
-    @Sql("/fixtures/documentByPhrase.sql")
-    @Transactional
-    public void shouldFindDocumentsByEditorId() {
-        //when
-        DocumentQuery documentQuery = new DocumentQuery();
-        documentQuery.setEditorId(1L);
-        DocumentSearchResults searchResults = catalog.find(documentQuery);
-
-        //then
-        assertThat(searchResults.getDocuments().size()).isEqualTo(1);
-        assertThat(searchResults.getDocuments().get(0).getNumber()).isEqualTo("5");
+        assertThat(searchResults.getDocuments().get(1).getNumber()).isEqualTo("5");
     }
 
     @Test
@@ -129,11 +109,11 @@ public class JPADocumentCatalogTest {
     @Test
     @Sql("/fixtures/documentByPhrase.sql")
     @Transactional
-    public void shouldFindDocumentsByCreatedAt() {
+    public void shouldFindDocumentByCreatedAt() {
         //when
         DocumentQuery documentQuery = new DocumentQuery();
         documentQuery.setCreatedAfter(LocalDateTime.parse("2017-01-01T10:30"));
-        documentQuery.setCreatedBefore(LocalDateTime.parse("2017-01-01T12:00"));
+        documentQuery.setCreatedBefore(LocalDateTime.parse("2017-01-01T11:00"));
         DocumentSearchResults searchResults = catalog.find(documentQuery);
 
         //then
@@ -141,6 +121,7 @@ public class JPADocumentCatalogTest {
         assertThat(searchResults.getDocuments().get(0).getNumber()).isEqualTo("0");
         assertThat(searchResults.getDocuments().get(1).getNumber()).isEqualTo("2");
     }
+
     @Test
     @Sql("/fixtures/documentByPhrase.sql")
     @Transactional
@@ -217,7 +198,7 @@ public class JPADocumentCatalogTest {
 
         //then
         assertThat(searchResults.getDocuments().size()).isEqualTo(5);
-        assertThat(searchResults.getDocuments().get(0).getNumber()).isEqualTo("5");
+        assertThat(searchResults.getDocuments().get(0).getNumber()).isEqualTo("0");
     }
 
     @Test
@@ -232,7 +213,8 @@ public class JPADocumentCatalogTest {
 
         //then
         assertThat(searchResults.getDocuments().size()).isEqualTo(5);
-        assertThat(searchResults.getDocuments().get(0).getNumber()).isEqualTo("3");
+        assertThat(searchResults.getDocuments().get(0).getNumber()).isEqualTo("5");
 
     }
 }
+

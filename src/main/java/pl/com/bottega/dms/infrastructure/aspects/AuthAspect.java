@@ -6,37 +6,34 @@ import org.springframework.stereotype.Component;
 import pl.com.bottega.dms.application.user.AuthRequiredException;
 import pl.com.bottega.dms.application.user.CurrentUser;
 import pl.com.bottega.dms.application.user.RequiresAuth;
-import pl.com.bottega.dms.application.user.PermissionsRequiredException;
 
-/**
- * Created by maciek on 12.03.2017.
- */
+import java.util.Arrays;
+
 @Component
 @Aspect
 public class AuthAspect {
+
     private CurrentUser currentUser;
 
     public AuthAspect(CurrentUser currentUser) {
         this.currentUser = currentUser;
     }
 
+    @Before("@annotation(requiresAuth)")
+    public void ensureAuthAnnotation(RequiresAuth requiresAuth) {
+        checkAuth(requiresAuth);
+    }
 
-    //@Before("@within(pl.com.bottega.dms.application.user.RequiresAuth) || @annotation(pl.com.bottega.dms.application.user.RequiresAuth)")
-    @Before("execution(* *.*(..)) && @annotation(requiresAuth)")
-    public void ensureAuth(RequiresAuth requiresAuth){
+    @Before("@within(requiresAuth)")
+    public void ensureAuthWithin(RequiresAuth requiresAuth) {
+        checkAuth(requiresAuth);
+    }
 
+    private void checkAuth(RequiresAuth requiresAuth) {
         if(currentUser.getEmployeeId() == null)
-            throw new AuthRequiredException("You are not logged");
-
-        if (!checkPermissions(requiresAuth))
-            throw new PermissionsRequiredException("You haven't got required permissions");
+            throw new AuthRequiredException("No authenticated user");
+        if(!currentUser.getRoles().containsAll(Arrays.asList(requiresAuth.value())))
+            throw new AuthRequiredException("User is not authorized");
     }
 
-    public boolean checkPermissions(RequiresAuth requiresAuth) {
-        for (String role : requiresAuth.roles()) {
-            if (currentUser.getRoles().contains(role))
-                return true;
-        }
-        return false;
-    }
 }

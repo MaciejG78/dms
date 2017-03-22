@@ -4,5 +4,4 @@ public class AuthRequiredException extends RuntimeException {
     public AuthRequiredException(String msg) {
         super(msg);
     }
-
 }

@@ -1,7 +1,6 @@
 package pl.com.bottega.dms.model;
 
 import pl.com.bottega.dms.model.commands.*;
-import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
@@ -17,29 +16,39 @@ import static pl.com.bottega.dms.model.DocumentStatus.*;
 @Entity
 public class Document {
 
+    private static final int CHARS_COUNT_PER_PAGE = 1800;
+
     @EmbeddedId
     private DocumentNumber number;
+
+    @Transient
+    DocumentState documentState;
+
     @Enumerated(EnumType.STRING)
-    private DocumentStatus status;
-    private String title;
-    private String content;
-    private LocalDateTime createdAt;
-    private LocalDateTime verifiedAt;
-    private LocalDateTime publishedAt;
-    private LocalDateTime changedAt;
+    DocumentStatus status;
+    String title;
+    String content;
+    LocalDateTime createdAt;
+    LocalDateTime verifiedAt;
+    LocalDateTime publishedAt;
+    LocalDateTime changedAt;
+    LocalDateTime expiresAt;
+
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "creatorId"))
     private EmployeeId creatorId;
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "verifierId"))
-    private EmployeeId verifierId;
+    EmployeeId verifierId;
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "editorId"))
-    private EmployeeId editorId;
+    EmployeeId editorId;
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "publisherId"))
-    private EmployeeId publisherId;
-    private BigDecimal printCost;
+    EmployeeId publisherId;
+    BigDecimal printCost;
+    @Enumerated(EnumType.STRING)
+    DocumentType documentType;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "documentNumber")
@@ -48,44 +57,31 @@ public class Document {
     Document() {
     }
 
-    public Document(CreateDocumentCommand cmd, NumberGenerator numberGenerator) {
-        this.number = numberGenerator.generate();
+    public Document(CreateDocumentCommand cmd, DocumentNumber number) {
+        this.number = number;
         this.status = DRAFT;
+        this.documentState = new  DraftState(this);
         this.title = cmd.getTitle();
         this.createdAt = LocalDateTime.now();
         this.creatorId = cmd.getEmployeeId();
         this.confirmations = new HashSet<>();
+        this.documentType = cmd.getDocumentType();
     }
 
     public void change(ChangeDocumentCommand cmd) {
-        if (!this.status.equals(DRAFT) && !this.status.equals(VERIFIED))
-            throw new DocumentStatusException("Document should be DRAFT or VERIFIED to PUBLISH");
-        this.title = cmd.getTitle();
-        this.content = cmd.getContent();
-        this.status = DRAFT;
-        this.changedAt = LocalDateTime.now();
-        this.editorId = cmd.getEmployeeId();
+        documentState.change(cmd);
     }
 
     public void verify(EmployeeId employeeId) {
-        if (!this.status.equals(DRAFT))
-            throw new DocumentStatusException("Document should be DRAFT to VERIFY");
-        this.status = VERIFIED;
-        this.verifiedAt = LocalDateTime.now();
-        this.verifierId = employeeId;
+        documentState.verify(employeeId);
     }
 
     public void archive(EmployeeId employeeId) {
-        this.status = ARCHIVED;
+        documentState.archive(employeeId);
     }
 
     public void publish(PublishDocumentCommand cmd, PrintCostCalculator printCostCalculator) {
-        if (!this.status.equals(VERIFIED))
-            throw new DocumentStatusException("Document should be VERIFIED to PUBLISH");
-        this.status = PUBLISHED;
-        this.publishedAt = LocalDateTime.now();
-        this.publisherId = cmd.getEmployeeId();
-        this.printCost = printCostCalculator.calculateCost(this);
+        documentState.publish(cmd, printCostCalculator);
         createConfirmations(cmd);
     }
 
@@ -96,13 +92,13 @@ public class Document {
     }
 
     public void confirm(ConfirmDocumentCommand cmd) {
-        Confirmation confirmation = getConfirmation(cmd.getEmployeeId());  //Właściciel i zarazem osoba potwierdzająca
+        Confirmation confirmation = getConfirmation(cmd.getEmployeeId());
         confirmation.confirm();
     }
 
     public void confirmFor(ConfirmForDocumentCommand cmd) {
-        Confirmation confirmation = getConfirmation(cmd.getConfirmingEmployeeId()); //Osoba za którą trzeba potwierdzić (owner)
-        confirmation.confirmFor(cmd.getEmployeeId()); //Osoba która potwierdza za właściciela (proxy - ten zalogowany)
+        Confirmation confirmation = getConfirmation(cmd.getConfirmForEmployeeId());
+        confirmation.confirmFor(cmd.getEmployeeId());
     }
 
     public DocumentStatus getStatus() {
@@ -174,6 +170,34 @@ public class Document {
             if (confirmation.isOwnedBy(employeeId))
                 return confirmation;
         }
-        throw new DocumentStatusException(String.format("No confirmation for %s", employeeId.getId()));
+        throw new DocumentStatusException(String.format("No confirmation for %s", employeeId));
+    }
+
+    public DocumentType getType() {
+        return documentType;
+    }
+
+    public int getPagesCount() {
+        if (content == null)
+            return 0;
+        return content.length() / CHARS_COUNT_PER_PAGE +
+                (content.length() % CHARS_COUNT_PER_PAGE == 0 ? 0 : 1);
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void export(DocumentBuilder builder){
+        builder.buildTitle(title);
+        builder.buildContent(content);
+        builder.buildNumber(number);
+        builder.buildCreatedAt(createdAt);
+        builder.buildStatus(status);
+        builder.buildType(documentType);
+        for (Confirmation confirmation : confirmations)
+            builder.buildConfirmation(confirmation.getOwner(), confirmation.getProxy(), confirmation.getConfirmationDate());
+
+
     }
 }

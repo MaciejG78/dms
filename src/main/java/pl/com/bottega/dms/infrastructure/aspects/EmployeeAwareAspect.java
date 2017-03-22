@@ -6,9 +6,6 @@ import org.springframework.stereotype.Component;
 import pl.com.bottega.dms.application.user.CurrentUser;
 import pl.com.bottega.dms.model.commands.EmployeeAware;
 
-/**
- * Created by maciek on 12.03.2017.
- */
 @Component
 @Aspect
 public class EmployeeAwareAspect {
@@ -22,7 +19,8 @@ public class EmployeeAwareAspect {
     @Before("execution(* pl.com.bottega.dms.application..*.*(..)) " +
             "&& args(pl.com.bottega.dms.model.commands.EmployeeAware) " +
             "&& args(employeeAware)")
-    public void setEmployeeId(EmployeeAware employeeAware){
+    public void setEmployeeId(EmployeeAware employeeAware) {
         employeeAware.setEmployeeId(currentUser.getEmployeeId());
-        }
+    }
+
 }

@@ -3,7 +3,6 @@ package pl.com.bottega.dms.infrastructure;
 import com.sun.deploy.util.StringUtils;
 import org.springframework.stereotype.Component;
 import pl.com.bottega.dms.application.*;
-import pl.com.bottega.dms.application.user.RequiresAuth;
 import pl.com.bottega.dms.model.Confirmation;
 import pl.com.bottega.dms.model.Document;
 import pl.com.bottega.dms.model.DocumentNumber;
@@ -17,11 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Created by maciek on 05.03.2017.
- */
 @Component
-@RequiresAuth
 public class JPQLDocumentCatalog implements DocumentCatalog {
 
     @PersistenceContext
@@ -31,7 +26,7 @@ public class JPQLDocumentCatalog implements DocumentCatalog {
     public DocumentSearchResults find(DocumentQuery documentQuery) {
         DocumentSearchResults results = new DocumentSearchResults();
 
-        String jpqlQuery = "SELECT d FROM Document d LEFT JOIN FETCH d.confirmations";
+        String jpqlQuery = "SELECT d FROM Document d LEFT JOIN FETCH d.confirmations ";
         Set<String> predicates = createPredicates(documentQuery);
         if (!predicates.isEmpty()) {
             String where = " WHERE " + StringUtils.join(predicates, " AND ");
@@ -39,10 +34,11 @@ public class JPQLDocumentCatalog implements DocumentCatalog {
         }
         if (documentQuery.getSortBy() != null) {
             String sortAndOrderBy = " ORDER BY d." + documentQuery.getSortBy();
-            if (documentQuery.getSortOrder() == "DESC")
+            if (documentQuery.getSortOrder() == "DESC") {
                 sortAndOrderBy += " DESC";
-            else
+            } else {
                 sortAndOrderBy += " ASC";
+            }
             jpqlQuery += sortAndOrderBy;
         }
         Query query = entityManager.createQuery(jpqlQuery);
@@ -159,5 +155,4 @@ public class JPQLDocumentCatalog implements DocumentCatalog {
             dto.setProxyEmployeeId(confirmation.getProxy().getId());
         return dto;
     }
-
 }

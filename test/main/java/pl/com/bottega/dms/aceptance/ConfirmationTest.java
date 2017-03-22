@@ -6,19 +6,15 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 import pl.com.bottega.dms.application.*;
-import pl.com.bottega.dms.application.user.AuthProcess;
-import pl.com.bottega.dms.application.user.CreateAccountCommand;
-import pl.com.bottega.dms.application.user.LoginCommand;
 import pl.com.bottega.dms.model.DocumentNumber;
+import pl.com.bottega.dms.model.DocumentType;
 import pl.com.bottega.dms.model.EmployeeId;
-import pl.com.bottega.dms.model.commands.ConfirmDocumentCommand;
-import pl.com.bottega.dms.model.commands.ConfirmForDocumentCommand;
-import pl.com.bottega.dms.model.commands.CreateDocumentCommand;
-import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
+import pl.com.bottega.dms.model.commands.*;
 import pl.com.bottega.dms.shared.AuthHelper;
 
-import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,14 +36,10 @@ public class ConfirmationTest {
     @Autowired
     private AuthHelper authHelper;
 
-    @Before
-    public void authenticate() {
-        authHelper.authenticate();
-    }
-
     @Test
     public void shouldConfirmDocument() {
         // given
+        authHelper.authenticate();
         DocumentNumber documentNumber = publishedDocument();
 
         //when
@@ -67,12 +59,12 @@ public class ConfirmationTest {
     @Test
     public void shouldConfirmDocumentForAnotherEmployee() {
         // given
+        authHelper.authenticate(0L);
         DocumentNumber documentNumber = publishedDocument();
 
         //when
         ConfirmForDocumentCommand confirmDocumentCommand = new ConfirmForDocumentCommand();
-        confirmDocumentCommand.setEmployeeId(new EmployeeId(1L));
-        confirmDocumentCommand.setConfirmingEmployeeId(new EmployeeId(2L));
+        confirmDocumentCommand.setConfirmForEmployeeId(new EmployeeId(1L));
         confirmDocumentCommand.setNumber(documentNumber.getNumber());
         readingConfirmator.confirmFor(confirmDocumentCommand);
 
@@ -82,11 +74,12 @@ public class ConfirmationTest {
         ConfirmationDto confirmationDto = dto.getConfirmations().get(0);
         assertThat(confirmationDto.isConfirmed()).isTrue();
         assertThat(confirmationDto.getOwnerEmployeeId()).isEqualTo(1L);
-        assertThat(confirmationDto.getProxyEmployeeId()).isEqualTo(2L);
+        assertThat(confirmationDto.getProxyEmployeeId()).isEqualTo(0L);
     }
 
     private DocumentNumber publishedDocument() {
         DocumentNumber documentNumber = createDocument();
+        updateDocument(documentNumber);
         documentFlowProcess.verify(documentNumber);
         PublishDocumentCommand publishDocumentCommand = new PublishDocumentCommand();
         publishDocumentCommand.setNumber(documentNumber.getNumber());
@@ -98,7 +91,17 @@ public class ConfirmationTest {
     private DocumentNumber createDocument() {
         CreateDocumentCommand cmd = new CreateDocumentCommand();
         cmd.setTitle("test");
+        cmd.setDocumentType(DocumentType.MANUAL);
         return documentFlowProcess.create(cmd);
+    }
+
+    private void updateDocument(DocumentNumber nr) {
+        ChangeDocumentCommand cmd = new ChangeDocumentCommand();
+        cmd.setNumber(nr.getNumber());
+        cmd.setContent("blah blah");
+        cmd.setExpiresAt(LocalDateTime.now().plusDays(365L));
+        cmd.setTitle("test");
+        documentFlowProcess.change(cmd);
     }
 
 }

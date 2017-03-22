@@ -8,6 +8,7 @@ import pl.com.bottega.dms.model.DocumentNumber;
 import pl.com.bottega.dms.model.DocumentStatus;
 
 import javax.persistence.EntityManager;
+import javax.persistence.FetchType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.criteria.*;
@@ -63,14 +64,11 @@ public class JPADocumentCatalog implements DocumentCatalog {
 
     private void criteriaSortBy(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, CriteriaQuery<Document> criteriaQuery, Root<Document> root) {
         if (documentQuery.getSortBy() != null) {
-            String sortBy = documentQuery.getSortBy();
             if (documentQuery.getSortOrder() == "DESC") {
-                criteriaQuery.orderBy(criteriaBuilder.desc(root.get(sortBy)));
-                }
-            else {
-                criteriaQuery.orderBy(criteriaBuilder.asc(root.get(sortBy)));
-            }
-        }
+                criteriaQuery.orderBy(criteriaBuilder.desc(root.get(documentQuery.getSortBy())));
+            } else {
+                criteriaQuery.orderBy(criteriaBuilder.asc(root.get(documentQuery.getSortBy())));
+            }}
     }
 
     private List<DocumentDto> getDocumentDtos(List<Document> documents) {
@@ -199,27 +197,9 @@ public class JPADocumentCatalog implements DocumentCatalog {
     }
 
     private DocumentDto createDocumentDto(Document document) {
-        DocumentDto documentDto = new DocumentDto();
-        documentDto.setNumber(document.getNumber().getNumber());
-        documentDto.setTitle(document.getTitle());
-        documentDto.setContent(document.getContent());
-        documentDto.setStatus(document.getStatus().name());
-        List<ConfirmationDto> confirmationDtos = new LinkedList<>();
-        for (Confirmation confirmation : document.getConfirmations()) {
-            ConfirmationDto dto = createConfirmationDto(confirmation);
-            confirmationDtos.add(dto);
-        }
-        documentDto.setConfirmations(confirmationDtos);
-        return documentDto;
+        DocumentDtoBuilder builder = new DocumentDtoBuilder();
+        document.export(builder);
+        return builder.getResult();
     }
 
-    private ConfirmationDto createConfirmationDto(Confirmation confirmation) {
-        ConfirmationDto dto = new ConfirmationDto();
-        dto.setConfirmed(confirmation.isConfirmed());
-        dto.setConfirmedAt(confirmation.getConfirmationDate());
-        dto.setOwnerEmployeeId(confirmation.getOwner().getId());
-        if (confirmation.hasProxy())
-            dto.setProxyEmployeeId(confirmation.getProxy().getId());
-        return dto;
-    }
 }

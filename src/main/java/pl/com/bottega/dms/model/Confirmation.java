@@ -1,7 +1,5 @@
 package pl.com.bottega.dms.model;
 
-import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
-
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -38,7 +36,7 @@ public class Confirmation {
 
     public void confirm() {
         if(isConfirmed())
-            throw new DocumentStatusException(String.format("Employee %s has already confirmed", owner.getId()));
+            throw new DocumentStatusException(String.format("Employee %s has already confirmed", owner));
         confirmationDate = LocalDateTime.now();
     }
 

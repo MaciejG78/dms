@@ -2,11 +2,14 @@ package pl.com.bottega.dms.model.commands;
 
 import pl.com.bottega.dms.model.EmployeeId;
 
-public class ChangeDocumentCommand implements EmployeeAware, Validatable{
+import java.time.LocalDateTime;
+
+public class ChangeDocumentCommand implements EmployeeAware, Validatable {
     private String title;
     private String content;
     private EmployeeId employeeId;
     private String number;
+    private LocalDateTime expiresAt;
 
     public void setTitle(String title) {
         this.title = title;
@@ -42,11 +45,19 @@ public class ChangeDocumentCommand implements EmployeeAware, Validatable{
 
     @Override
     public void validate(ValidationErrors errors) {
-        if (title == null || title.isEmpty())
+        if (isEmpty(title))
             errors.add("title", "can't be blank");
-        if (content == null || content.isEmpty())
+        if (isEmpty(content))
             errors.add("content", "can't be blank");
-        if (number == null || number.isEmpty())
+        if (isEmpty(number))
             errors.add("number", "can't be blank");
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
     }
 }

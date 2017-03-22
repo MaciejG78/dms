@@ -3,6 +3,7 @@ package pl.com.bottega.dms.application;
 import java.time.LocalDateTime;
 
 public class DocumentQuery {
+
     private String phrase;
     private String status;
 
@@ -29,10 +30,10 @@ public class DocumentQuery {
     public String getPhrase() {
         return phrase;
     }
+
     public void setPhrase(String phrase) {
         this.phrase = phrase;
     }
-
 
     public String getStatus() {
         return status;

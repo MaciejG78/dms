@@ -1,14 +1,10 @@
 package pl.com.bottega.dms.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import pl.com.bottega.dms.model.commands.*;
-import pl.com.bottega.dms.model.exceptions.DocumentStatusException;
-import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
 import java.math.BigDecimal;
@@ -16,8 +12,8 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 import static pl.com.bottega.dms.model.DocumentStatus.*;
@@ -36,7 +32,7 @@ public class DocumentTest {
     }
 
     @Test
-    public void shouldGenerateNumberOnCreate() {
+    public void shouldRememberNumber() {
         Document document = given().newDocument();
 
         assertEquals(anyDocumentNumber(), document.getNumber());
@@ -47,6 +43,13 @@ public class DocumentTest {
         Document document = given().newDocument();
 
         assertEquals("test title", document.getTitle());
+    }
+
+    @Test
+    public void shouldSetDocumentTyoeOnCreate() {
+        Document document = given().newDocument();
+
+        assertEquals(DocumentType.QUALITY_BOOK, document.getType());
     }
 
     @Test
@@ -232,7 +235,6 @@ public class DocumentTest {
     //15. Z dokumentem zarchiwizowanym nie można nic robić (edytować, publikować, weryfikować). Wszelkie próby powinny rzucać wyjątek DocumentStatusException.
     public void shouldNotAllowEditingArchivedDocuments() {
         Document document = given().archivedDocument();
-
         document.change(new ChangeDocumentCommand());
     }
 
@@ -240,7 +242,6 @@ public class DocumentTest {
     //15. Z dokumentem zarchiwizowanym nie można nic robić (edytować, publikować, weryfikować). Wszelkie próby powinny rzucać wyjątek DocumentStatusException.
     public void shouldNotAllowVerifyingArchivedDocuments() {
         Document document = given().archivedDocument();
-
         document.verify(anyEmployeeId());
     }
 
@@ -311,8 +312,8 @@ public class DocumentTest {
 
         //when
         ConfirmForDocumentCommand cmd = new ConfirmForDocumentCommand();
-        cmd.setConfirmingEmployeeId(new EmployeeId(2L));
-        cmd.setEmployeeId(new EmployeeId(1L));
+        cmd.setEmployeeId(new EmployeeId(2L));
+        cmd.setConfirmForEmployeeId(new EmployeeId(1L));
         document.confirmFor(cmd);
 
         //then
@@ -352,8 +353,8 @@ public class DocumentTest {
 
         //when
         ConfirmForDocumentCommand cmd = new ConfirmForDocumentCommand();
+        cmd.setConfirmForEmployeeId(new EmployeeId(1L));
         cmd.setEmployeeId(new EmployeeId(1L));
-        cmd.setConfirmingEmployeeId(new EmployeeId(1L));
         document.confirmFor(cmd);
     }
 
@@ -383,9 +384,8 @@ public class DocumentTest {
             CreateDocumentCommand cmd = new CreateDocumentCommand();
             cmd.setTitle("test title");
             cmd.setEmployeeId(employeeId);
-            NumberGenerator numberGenerator = mock(NumberGenerator.class);
-            when(numberGenerator.generate()).thenReturn(anyDocumentNumber());
-            return new Document(cmd, numberGenerator);
+            cmd.setDocumentType(DocumentType.QUALITY_BOOK);
+            return new Document(cmd, anyDocumentNumber());
         }
 
         public Document verifiedDocument() {

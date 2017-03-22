@@ -104,25 +104,29 @@
       <Position>13</Position>
       <DataType>BIGINT(64)|-5</DataType>
     </column>
-    <key id="29" parent="7" name="SYS_PK_10096">
+    <column id="29" parent="7" name="DOCUMENT_TYPE">
+      <Position>14</Position>
+      <DataType>VARCHAR(255)|12</DataType>
+    </column>
+    <key id="30" parent="7" name="SYS_PK_10096">
       <NameSurrogate>1</NameSurrogate>
       <ColNames>NUMBER</ColNames>
       <Primary>1</Primary>
     </key>
-    <column id="30" parent="8" name="ID">
+    <column id="31" parent="8" name="ID">
       <Position>1</Position>
       <DataType>BIGINT(64)|-5</DataType>
       <NotNull>1</NotNull>
     </column>
-    <column id="31" parent="8" name="HASHED_PASSWORD">
+    <column id="32" parent="8" name="HASHED_PASSWORD">
       <Position>2</Position>
       <DataType>VARCHAR(255)|12</DataType>
     </column>
-    <column id="32" parent="8" name="USER_NAME">
+    <column id="33" parent="8" name="USER_NAME">
       <Position>3</Position>
       <DataType>VARCHAR(255)|12</DataType>
     </column>
-    <key id="33" parent="8" name="SYS_PK_10142">
+    <key id="34" parent="8" name="SYS_PK_10100">
       <NameSurrogate>1</NameSurrogate>
       <ColNames>ID</ColNames>
       <Primary>1</Primary>
