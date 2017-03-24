@@ -51,6 +51,8 @@ public class ChangeDocumentCommand implements EmployeeAware, Validatable {
             errors.add("content", "can't be blank");
         if (isEmpty(number))
             errors.add("number", "can't be blank");
+        if (expiresAt == null)
+            errors.add("expiresAt", "can't be blank");
     }
 
     public void setExpiresAt(LocalDateTime expiresAt) {

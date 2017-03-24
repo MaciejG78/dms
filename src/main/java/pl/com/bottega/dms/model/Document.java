@@ -57,16 +57,18 @@ public class Document {
     Document() {
     }
 
+
     public Document(CreateDocumentCommand cmd, DocumentNumber number) {
         this.number = number;
         this.status = DRAFT;
-        this.documentState = new  DraftState(this);
+        this.documentState = new DraftState(this);
         this.title = cmd.getTitle();
         this.createdAt = LocalDateTime.now();
         this.creatorId = cmd.getEmployeeId();
         this.confirmations = new HashSet<>();
         this.documentType = cmd.getDocumentType();
     }
+
 
     public void change(ChangeDocumentCommand cmd) {
         documentState.change(cmd);
@@ -92,13 +94,23 @@ public class Document {
     }
 
     public void confirm(ConfirmDocumentCommand cmd) {
-        Confirmation confirmation = getConfirmation(cmd.getEmployeeId());
-        confirmation.confirm();
+        documentState.confirm(cmd);
     }
 
     public void confirmFor(ConfirmForDocumentCommand cmd) {
-        Confirmation confirmation = getConfirmation(cmd.getConfirmForEmployeeId());
-        confirmation.confirmFor(cmd.getEmployeeId());
+        documentState.confirmFor(cmd);
+    }
+
+    @PostLoad
+    public void checkState(){
+        if (status == DRAFT)
+            documentState = new DraftState(this);
+        if (status == VERIFIED)
+            documentState = new VerifiedState(this);
+        if (status == PUBLISHED)
+            documentState = new PublishedState(this);
+        if (status == ARCHIVED)
+            documentState = new ArchivedState(this);
     }
 
     public DocumentStatus getStatus() {
@@ -188,7 +200,7 @@ public class Document {
         return expiresAt;
     }
 
-    public void export(DocumentBuilder builder){
+    public void export(DocumentBuilder builder) {
         builder.buildTitle(title);
         builder.buildContent(content);
         builder.buildNumber(number);

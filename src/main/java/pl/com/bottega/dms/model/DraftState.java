@@ -6,6 +6,7 @@ import pl.com.bottega.dms.model.commands.ConfirmForDocumentCommand;
 import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
+import javax.persistence.PostLoad;
 import java.time.LocalDateTime;
 
 import static pl.com.bottega.dms.model.DocumentStatus.ARCHIVED;

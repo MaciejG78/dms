@@ -43,11 +43,13 @@ public class PublishedState implements DocumentState {
 
     @Override
     public void confirm(ConfirmDocumentCommand cmd) {
-
+        Confirmation confirmation = document.getConfirmation(cmd.getEmployeeId());
+        confirmation.confirm();
     }
 
     @Override
     public void confirmFor(ConfirmForDocumentCommand cmd) {
-
+        Confirmation confirmation = document.getConfirmation(cmd.getConfirmForEmployeeId());
+        confirmation.confirmFor(cmd.getEmployeeId());
     }
 }
